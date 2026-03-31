@@ -26,6 +26,9 @@ logs/
 .DS_Store
 Thumbs.db
 
+# WorkBuddy
+.workbuddy/
+
 # Distribution
 dist/
 build/
