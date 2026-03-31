@@ -1,0 +1,2300 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent Teams Harness - 交互原型 v1.1 (MD3)</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;900&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+/* ====== MD3 CSS VARIABLES (Light Theme) ====== */
+:root {
+  /* Primary */
+  --md3-primary: #6750A4;
+  --md3-on-primary: #FFFFFF;
+  --md3-primary-container: #EADDFF;
+  --md3-on-primary-container: #21005D;
+  /* Secondary */
+  --md3-secondary: #625B71;
+  --md3-on-secondary: #FFFFFF;
+  --md3-secondary-container: #E8DEF8;
+  --md3-on-secondary-container: #1D192B;
+  /* Tertiary */
+  --md3-tertiary: #7D5260;
+  --md3-on-tertiary: #FFFFFF;
+  --md3-tertiary-container: #FFD8E4;
+  --md3-on-tertiary-container: #31111D;
+  /* Surface */
+  --md3-surface: #FFFBFE;
+  --md3-surface-dim: #F7F2F7;
+  --md3-surface-bright: #FFFBFE;
+  --md3-surface-container: #F3EDF7;
+  --md3-surface-container-low: #F7F2FA;
+  --md3-surface-container-high: #ECE6F0;
+  --md3-on-surface: #1C1B1F;
+  --md3-on-surface-variant: #49454F;
+  /* Outline */
+  --md3-outline: #79747E;
+  --md3-outline-variant: #CAC4D0;
+  /* Error */
+  --md3-error: #B3261E;
+  --md3-on-error: #FFFFFF;
+  --md3-error-container: #F9DEDC;
+  --md3-on-error-container: #410E0B;
+  /* Success */
+  --md3-success: #386A20;
+  --md3-on-success: #FFFFFF;
+  --md3-success-container: #C4EED0;
+  /* Inverse */
+  --md3-inverse-surface: #313033;
+  --md3-inverse-on-surface: #F4EFF4;
+  /* Misc */
+  --md3-shadow: rgba(0,0,0,0.15);
+  --md3-scrim: rgba(0,0,0,0.32);
+  --md3-surface-tint: #6750A4;
+  --md3-shadow-elevation-1: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.08);
+  --md3-shadow-elevation-2: 0 2px 6px rgba(0,0,0,0.12), 0 1px 3px rgba(0,0,0,0.08);
+  --md3-shadow-elevation-3: 0 4px 16px rgba(0,0,0,0.12), 0 2px 6px rgba(0,0,0,0.08);
+  /* Layout */
+  --sidebar-w: 280px;
+  --topbar-h: 64px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 28px;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { height:100%; }
+body {
+  font-family: 'Noto Sans SC', 'Roboto', sans-serif;
+  background: var(--md3-surface);
+  color: var(--md3-on-surface);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ====== SCROLLBAR ====== */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--md3-outline-variant); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--md3-outline); }
+
+/* ====== LAYOUT ====== */
+.app { display:flex; height:100vh; }
+
+/* ====== NAVIGATION RAIL (Left Sidebar) ====== */
+.nav-rail {
+  width: 80px;
+  min-width: 80px;
+  background: var(--md3-surface-container);
+  border-right: 1px solid var(--md3-outline-variant);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 0;
+  z-index: 10;
+}
+.nav-rail-top { display:flex; flex-direction:column; align-items:center; gap:4px; flex:1; }
+.nav-rail-bottom { display:flex; flex-direction:column; align-items:center; gap:4px; padding-bottom: 8px; }
+
+.nav-rail-item {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  color: var(--md3-on-surface-variant);
+  text-decoration: none;
+  position: relative;
+}
+.nav-rail-item i { font-size: 18px; }
+.nav-rail-item span { font-size: 10px; font-weight: 500; }
+.nav-rail-item:hover { background: var(--md3-surface-container-high); }
+.nav-rail-item.active {
+  background: var(--md3-secondary-container);
+  color: var(--md3-on-secondary-container);
+}
+.nav-rail-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 24px;
+  background: var(--md3-primary);
+  border-radius: 0 3px 3px 0;
+}
+.nav-rail-divider { width: 32px; height: 1px; background: var(--md3-outline-variant); margin: 4px 0; }
+.nav-logo {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, var(--md3-primary), var(--md3-tertiary));
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 20px;
+  margin-bottom: 16px;
+  box-shadow: var(--md3-shadow-elevation-2);
+}
+.nav-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 16px;
+  height: 16px;
+  background: var(--md3-error);
+  color: white;
+  border-radius: 50%;
+  font-size: 9px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ====== SIDEBAR (Navigation Drawer) ====== */
+.sidebar {
+  width: var(--sidebar-w);
+  min-width: var(--sidebar-w);
+  background: var(--md3-surface);
+  border-right: 1px solid var(--md3-outline-variant);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow-y: auto;
+}
+.sidebar-header {
+  padding: 24px 20px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--md3-outline-variant);
+  flex-shrink: 0;
+}
+.sidebar-logo {
+  width: 40px; height: 40px;
+  background: linear-gradient(135deg, var(--md3-primary), #9A82DB);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 18px;
+  box-shadow: var(--md3-shadow-elevation-1);
+}
+.sidebar-title { font-size: 16px; font-weight: 600; color: var(--md3-on-surface); letter-spacing: -0.3px; }
+.sidebar-subtitle { font-size: 11px; color: var(--md3-on-surface-variant); }
+
+.nav-section { padding: 8px 12px; }
+.nav-section-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--md3-on-surface-variant);
+  padding: 8px 8px 4px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: background 0.15s;
+  color: var(--md3-on-surface-variant);
+  font-size: 14px;
+  font-weight: 400;
+  text-decoration: none;
+}
+.nav-item i { width: 20px; text-align: center; font-size: 16px; }
+.nav-item span { flex:1; }
+.nav-item:hover { background: var(--md3-surface-container); }
+.nav-item.active {
+  background: var(--md3-secondary-container);
+  color: var(--md3-on-secondary-container);
+  font-weight: 500;
+}
+.nav-item .nav-count {
+  background: var(--md3-surface-container-high);
+  color: var(--md3-on-surface-variant);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+.nav-item.active .nav-count {
+  background: var(--md3-on-secondary-container);
+  color: var(--md3-secondary-container);
+}
+
+/* ====== MAIN CONTENT ====== */
+.main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+
+/* ====== TOP APP BAR ====== */
+.topbar {
+  height: var(--topbar-h);
+  background: var(--md3-surface);
+  border-bottom: 1px solid var(--md3-outline-variant);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  gap: 16px;
+  flex-shrink: 0;
+  z-index: 5;
+}
+.topbar-title {
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: -0.5px;
+  color: var(--md3-on-surface);
+  flex:1;
+}
+.topbar-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--md3-on-surface-variant);
+}
+.topbar-breadcrumb a { color: var(--md3-primary); text-decoration:none; }
+.topbar-breadcrumb i { font-size: 10px; }
+
+.topbar-actions { display:flex; align-items:center; gap:8px; }
+.icon-btn {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--md3-on-surface-variant);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  transition: background 0.15s;
+  position: relative;
+}
+.icon-btn:hover { background: var(--md3-surface-container); }
+.icon-btn .badge {
+  position: absolute;
+  top: 4px; right: 4px;
+  width: 16px; height: 16px;
+  background: var(--md3-error);
+  color: white;
+  border-radius: 50%;
+  font-size: 9px;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* ====== FAB ====== */
+.fab {
+  width: 56px; height: 56px;
+  border-radius: var(--radius-lg);
+  background: var(--md3-primary-container);
+  color: var(--md3-on-primary-container);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  box-shadow: var(--md3-shadow-elevation-3);
+  transition: transform 0.2s, box-shadow 0.2s;
+  position: relative;
+}
+.fab:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(103,80,164,0.25); }
+.fab-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px;
+  height: 40px;
+  border-radius: 20px;
+  background: var(--md3-primary);
+  color: var(--md3-on-primary);
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: var(--md3-shadow-elevation-2);
+}
+.fab-label i { font-size: 16px; }
+
+/* ====== CONTENT AREA ====== */
+.content {
+  flex:1;
+  overflow-y: auto;
+  padding: 24px;
+  background: var(--md3-surface-dim);
+}
+
+/* ====== CARDS ====== */
+.card {
+  background: var(--md3-surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--md3-outline-variant);
+  overflow: hidden;
+  box-shadow: var(--md3-shadow-elevation-1);
+}
+.card-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--md3-outline-variant);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.card-title { font-size: 16px; font-weight: 500; flex:1; }
+.card-body { padding: 20px; }
+
+/* ====== STAT CARDS ====== */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.stat-card {
+  background: var(--md3-surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--md3-outline-variant);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: var(--md3-shadow-elevation-1);
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+}
+.stat-card:hover { transform: translateY(-2px); box-shadow: var(--md3-shadow-elevation-2); }
+.stat-icon {
+  width: 40px; height: 40px;
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+}
+.stat-value { font-size: 32px; font-weight: 700; letter-spacing: -1px; color: var(--md3-on-surface); }
+.stat-label { font-size: 13px; color: var(--md3-on-surface-variant); }
+.stat-trend { font-size: 12px; display: flex; align-items: center; gap: 4px; margin-top: 4px; }
+.stat-trend.up { color: var(--md3-success); }
+.stat-trend.down { color: var(--md3-error); }
+
+/* ====== PIPELINE FLOW ====== */
+.pipeline-flow {
+  background: var(--md3-surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--md3-outline-variant);
+  padding: 20px 24px;
+  margin-bottom: 24px;
+  box-shadow: var(--md3-shadow-elevation-1);
+}
+.pipeline-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--md3-on-surface-variant);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pipeline-stages {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+.pipeline-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 80px;
+}
+.pipeline-node {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  border: 2px solid var(--md3-outline-variant);
+  background: var(--md3-surface);
+  color: var(--md3-on-surface-variant);
+  transition: all 0.2s;
+}
+.pipeline-node.active {
+  background: var(--md3-primary-container);
+  border-color: var(--md3-primary);
+  color: var(--md3-on-primary-container);
+  box-shadow: 0 0 0 4px var(--md3-primary-container);
+}
+.pipeline-node-label { font-size: 11px; color: var(--md3-on-surface-variant); text-align: center; white-space: nowrap; }
+.pipeline-node-count {
+  font-size: 10px;
+  font-weight: 700;
+  background: var(--md3-surface-container);
+  color: var(--md3-on-surface-variant);
+  padding: 1px 6px;
+  border-radius: 10px;
+}
+.pipeline-arrow {
+  color: var(--md3-outline-variant);
+  font-size: 14px;
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+
+/* ====== TABLES ====== */
+.data-table { width:100%; border-collapse:collapse; }
+.data-table th {
+  text-align: left;
+  padding: 12px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--md3-on-surface-variant);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--md3-outline-variant);
+  background: var(--md3-surface-container-low);
+}
+.data-table td {
+  padding: 14px 16px;
+  font-size: 14px;
+  color: var(--md3-on-surface);
+  border-bottom: 1px solid var(--md3-outline-variant);
+  vertical-align: middle;
+}
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: var(--md3-surface-container-low); }
+
+/* ====== BADGES / CHIPS ====== */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.badge-p0 { background: var(--md3-error-container); color: var(--md3-on-error-container); }
+.badge-p1 { background: #FFF3E0; color: #E65100; }
+.badge-p2 { background: var(--md3-success-container); color: var(--md3-on-success); }
+.badge-new { background: var(--md3-primary-container); color: var(--md3-on-primary-container); }
+.badge-active { background: var(--md3-success-container); color: var(--md3-success); }
+.badge-pending { background: #FFF8E1; color: #F57F17; }
+.badge-suspended { background: var(--md3-surface-container); color: var(--md3-on-surface-variant); }
+
+.agent-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--md3-secondary-container);
+  color: var(--md3-on-secondary-container);
+}
+.agent-badge .dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.agent-badge.active .dot { background: var(--md3-success); }
+.agent-badge.pending .dot { background: #F57F17; }
+.agent-badge.suspended .dot { background: var(--md3-on-surface-variant); }
+
+/* ====== BUTTONS ====== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 24px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  border: none;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.btn-filled {
+  background: var(--md3-primary);
+  color: var(--md3-on-primary);
+  box-shadow: var(--md3-shadow-elevation-1);
+}
+.btn-filled:hover { box-shadow: var(--md3-shadow-elevation-2); }
+.btn-outlined {
+  background: transparent;
+  color: var(--md3-primary);
+  border: 1px solid var(--md3-outline);
+}
+.btn-outlined:hover { background: var(--md3-primary-container); }
+.btn-tonal {
+  background: var(--md3-secondary-container);
+  color: var(--md3-on-secondary-container);
+}
+.btn-tonal:hover { background: var(--md3-surface-container-high); }
+.btn-text {
+  background: transparent;
+  color: var(--md3-primary);
+}
+.btn-text:hover { background: var(--md3-primary-container); }
+.btn-error {
+  background: var(--md3-error-container);
+  color: var(--md3-on-error-container);
+}
+.btn-sm { padding: 6px 16px; font-size: 12px; }
+.btn-icon { width: 40px; height: 40px; padding: 0; border-radius: 50%; }
+
+/* ====== TABS ====== */
+.tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--md3-outline-variant);
+  margin-bottom: 20px;
+}
+.tab {
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--md3-on-surface-variant);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+  text-decoration: none;
+}
+.tab:hover { color: var(--md3-on-surface); }
+.tab.active {
+  color: var(--md3-primary);
+  border-bottom-color: var(--md3-primary);
+}
+
+/* ====== FORMS ====== */
+.form-group { margin-bottom: 20px; }
+.form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--md3-on-surface-variant);
+  margin-bottom: 6px;
+}
+.form-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--md3-outline);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-family: inherit;
+  background: var(--md3-surface);
+  color: var(--md3-on-surface);
+  transition: border-color 0.15s;
+  outline: none;
+}
+.form-input:focus {
+  border-color: var(--md3-primary);
+  border-width: 2px;
+}
+.form-select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--md3-outline);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-family: inherit;
+  background: var(--md3-surface);
+  color: var(--md3-on-surface);
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2349454F' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+  outline: none;
+  cursor: pointer;
+}
+.form-textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--md3-outline);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-family: inherit;
+  background: var(--md3-surface);
+  color: var(--md3-on-surface);
+  resize: vertical;
+  min-height: 100px;
+  outline: none;
+}
+.form-hint { font-size: 11px; color: var(--md3-on-surface-variant); margin-top: 4px; }
+
+/* ====== KANBAN ====== */
+.kanban-board {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 16px;
+}
+.kanban-col {
+  min-width: 280px;
+  max-width: 280px;
+  background: var(--md3-surface-container-low);
+  border-radius: var(--radius-lg);
+  padding: 12px;
+  flex-shrink: 0;
+}
+.kanban-col-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 8px 12px;
+}
+.kanban-col-title { font-size: 13px; font-weight: 600; flex:1; color: var(--md3-on-surface); }
+.kanban-col-count {
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--md3-surface-container-high);
+  color: var(--md3-on-surface-variant);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+.kanban-cards { display:flex; flex-direction:column; gap:8px; }
+.kanban-card {
+  background: var(--md3-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--md3-outline-variant);
+  padding: 14px;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  box-shadow: var(--md3-shadow-elevation-1);
+}
+.kanban-card:hover { transform: translateY(-2px); box-shadow: var(--md3-shadow-elevation-2); }
+.kanban-card-title { font-size: 13px; font-weight: 500; color: var(--md3-on-surface); margin-bottom: 8px; line-height: 1.4; }
+.kanban-card-meta { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.kanban-card-info { font-size: 11px; color: var(--md3-on-surface-variant); display:flex; align-items:center; gap:4px; margin-top: 8px; }
+.kanban-card-days {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--md3-on-surface-variant);
+  background: var(--md3-surface-container);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* ====== AGENT ONBOARDING STEPS ====== */
+.onboarding-flow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin: 24px 0;
+}
+.onboarding-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+}
+.onboarding-step-num {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  border: 2px solid var(--md3-outline-variant);
+  background: var(--md3-surface);
+  color: var(--md3-on-surface-variant);
+  z-index: 1;
+}
+.onboarding-step.active .onboarding-step-num {
+  background: var(--md3-primary);
+  border-color: var(--md3-primary);
+  color: white;
+}
+.onboarding-step.done .onboarding-step-num {
+  background: var(--md3-success-container);
+  border-color: var(--md3-success);
+  color: var(--md3-success);
+}
+.onboarding-step-label { font-size: 12px; font-weight: 500; color: var(--md3-on-surface-variant); text-align: center; max-width: 80px; }
+.onboarding-step.active .onboarding-step-label { color: var(--md3-primary); }
+.onboarding-connector {
+  width: 80px;
+  height: 2px;
+  background: var(--md3-outline-variant);
+  margin: 0 8px;
+  margin-bottom: 24px;
+}
+.onboarding-step.done + .onboarding-connector,
+.onboarding-connector.done { background: var(--md3-success); }
+
+/* ====== SPEC CARD ====== */
+.spec-card {
+  background: var(--md3-surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--md3-outline-variant);
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: var(--md3-shadow-elevation-1);
+  border-left: 4px solid var(--md3-primary);
+  transition: transform 0.15s, box-shadow 0.15s;
+  cursor: pointer;
+}
+.spec-card:hover { transform: translateY(-1px); box-shadow: var(--md3-shadow-elevation-2); }
+.spec-card-header { display:flex; align-items:center; gap:12px; margin-bottom: 12px; }
+.spec-card-title { font-size: 15px; font-weight: 600; flex:1; color: var(--md3-on-surface); }
+.spec-card-meta { font-size: 12px; color: var(--md3-on-surface-variant); display:flex; gap:16px; }
+.spec-card-actions { display:flex; gap:8px; }
+
+/* ====== EMPTY STATE ====== */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--md3-on-surface-variant);
+}
+.empty-state i { font-size: 48px; margin-bottom: 16px; color: var(--md3-outline); }
+.empty-state h3 { font-size: 18px; font-weight: 500; color: var(--md3-on-surface); margin-bottom: 8px; }
+.empty-state p { font-size: 14px; }
+
+/* ====== SECTION GRID ====== */
+.section-grid { display:grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.section-full { grid-column: 1 / -1; }
+
+/* ====== MISC ====== */
+.text-muted { color: var(--md3-on-surface-variant); font-size: 13px; }
+.text-sm { font-size: 13px; }
+.text-xs { font-size: 11px; }
+.flex { display:flex; }
+.flex-1 { flex:1; }
+.items-center { align-items:center; }
+.gap-8 { gap:8px; }
+.gap-12 { gap:12px; }
+.gap-16 { gap:16px; }
+.mt-4 { margin-top:4px; }
+.mt-8 { margin-top:8px; }
+.mt-16 { margin-top:16px; }
+.mb-8 { margin-bottom:8px; }
+.mb-16 { margin-bottom:16px; }
+.mb-24 { margin-bottom:24px; }
+.p-20 { padding:20px; }
+.divider { height:1px; background: var(--md3-outline-variant); margin: 16px 0; }
+
+/* ====== TOAST ====== */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: var(--md3-inverse-surface);
+  color: var(--md3-inverse-on-surface);
+  padding: 14px 20px;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: var(--md3-shadow-elevation-3);
+  transform: translateY(100px);
+  opacity: 0;
+  transition: transform 0.3s, opacity 0.3s;
+  z-index: 1000;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast i { font-size: 18px; color: var(--md3-success); }
+
+/* ====== DIALOG ====== */
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--md3-scrim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+.dialog-overlay.show { opacity: 1; pointer-events: all; }
+.dialog {
+  background: var(--md3-surface);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  max-width: 480px;
+  width: 90%;
+  box-shadow: var(--md3-shadow-elevation-3);
+  transform: scale(0.9);
+  transition: transform 0.2s;
+}
+.dialog-overlay.show .dialog { transform: scale(1); }
+.dialog-title { font-size: 20px; font-weight: 500; margin-bottom: 16px; }
+.dialog-actions { display:flex; gap:8px; justify-content:flex-end; margin-top: 24px; }
+
+/* ====== ANIMATIONS ====== */
+@keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+@keyframes slideIn { from { opacity:0; transform:translateX(-16px); } to { opacity:1; transform:translateX(0); } }
+.animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
+.animate-slide-in { animation: slideIn 0.3s ease-out forwards; }
+.page { display:none; }
+.page.active { display:block; }
+
+/* ====== RESPONSIVE ====== */
+@media (max-width: 1200px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .section-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- NAVIGATION RAIL -->
+  <nav class="nav-rail">
+    <div class="nav-logo"><i class="fa-solid fa-robot"></i></div>
+    <div class="nav-rail-top">
+      <div class="nav-rail-item active" data-page="dashboard" title="控制台">
+        <i class="fa-solid fa-chart-pie"></i>
+        <span>控制台</span>
+      </div>
+      <div class="nav-rail-item" data-page="intelligence" title="情报来源">
+        <i class="fa-solid fa-satellite-dish"></i>
+        <span>情报</span>
+        <div class="nav-badge">1293</div>
+      </div>
+      <div class="nav-rail-item" data-page="opportunities" title="意向池">
+        <i class="fa-solid fa-inbox"></i>
+        <span>意向池</span>
+        <div class="nav-badge">3</div>
+      </div>
+      <div class="nav-rail-item" data-page="kanban" title="看板">
+        <i class="fa-solid fa-columns"></i>
+        <span>看板</span>
+      </div>
+      <div class="nav-rail-item" data-page="requirements" title="需求">
+        <i class="fa-solid fa-list-check"></i>
+        <span>需求</span>
+      </div>
+      <div class="nav-rail-divider"></div>
+      <div class="nav-rail-item" data-page="agents" title="Agent">
+        <i class="fa-solid fa-robot"></i>
+        <span>Agent</span>
+      </div>
+      <div class="nav-rail-item" data-page="specs" title="规范">
+        <i class="fa-solid fa-file-alt"></i>
+        <span>规范</span>
+      </div>
+    </div>
+    <div class="nav-rail-bottom">
+      <div class="nav-rail-item" data-page="settings" title="设置">
+        <i class="fa-solid fa-gear"></i>
+        <span>设置</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+    <!-- TOP BAR -->
+    <header class="topbar">
+      <div class="topbar-breadcrumb">
+        <span>Agent Teams Harness</span>
+        <i class="fa-solid fa-chevron-right"></i>
+        <span id="topbar-page-name">控制台</span>
+      </div>
+      <div class="topbar-actions">
+        <button class="icon-btn" title="搜索"><i class="fa-solid fa-magnifying-glass"></i></button>
+        <button class="icon-btn" title="通知">
+          <i class="fa-regular fa-bell"></i>
+          <div class="badge">3</div>
+        </button>
+        <button class="icon-btn" title="帮助"><i class="fa-regular fa-circle-question"></i></button>
+        <div style="width:32px;height:32px;background:var(--md3-primary-container);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--md3-on-primary-container);font-size:13px;font-weight:600;cursor:pointer;">嘉</div>
+      </div>
+    </header>
+
+    <!-- PAGE: DASHBOARD -->
+    <div class="content page active" id="page-dashboard">
+      <div class="stats-grid animate-fade-in">
+        <div class="stat-card" style="border-left:3px solid var(--md3-primary);">
+          <div class="stat-icon" style="background:var(--md3-primary-container);color:var(--md3-on-primary-container);"><i class="fa-solid fa-plus"></i></div>
+          <div class="stat-value">12</div>
+          <div class="stat-label">今日新增意向</div>
+          <div class="stat-trend up"><i class="fa-solid fa-arrow-up"></i> +3 vs 昨日</div>
+        </div>
+        <div class="stat-card" style="border-left:3px solid var(--md3-tertiary);">
+          <div class="stat-icon" style="background:var(--md3-tertiary-container);color:var(--md3-on-tertiary-container);"><i class="fa-solid fa-clock"></i></div>
+          <div class="stat-value">8</div>
+          <div class="stat-label">处理中任务</div>
+          <div class="stat-trend down"><i class="fa-solid fa-arrow-down"></i> -2 vs 昨日</div>
+        </div>
+        <div class="stat-card" style="border-left:3px solid var(--md3-success);">
+          <div class="stat-icon" style="background:var(--md3-success-container);color:var(--md3-success);"><i class="fa-solid fa-check-circle"></i></div>
+          <div class="stat-value">24</div>
+          <div class="stat-label">已完成任务</div>
+          <div class="stat-trend up"><i class="fa-solid fa-arrow-up"></i> +5 vs 昨日</div>
+        </div>
+        <div class="stat-card" style="border-left:3px solid var(--md3-secondary);">
+          <div class="stat-icon" style="background:var(--md3-secondary-container);color:var(--md3-on-secondary-container);"><i class="fa-solid fa-robot"></i></div>
+          <div class="stat-value">7</div>
+          <div class="stat-label">活跃 Agent</div>
+          <div class="stat-trend up"><i class="fa-solid fa-arrow-up"></i> 全部在线</div>
+        </div>
+      </div>
+
+      <!-- Pipeline Flow -->
+      <div class="pipeline-flow animate-fade-in" style="animation-delay:0.1s;">
+        <div class="pipeline-title"><i class="fa-solid fa-diagram-project"></i> 流水线状态</div>
+        <div class="pipeline-stages">
+          <div class="pipeline-stage">
+            <div class="pipeline-node active"><i class="fa-solid fa-satellite-dish"></i></div>
+            <div class="pipeline-node-label">情报</div>
+            <div class="pipeline-node-count">3</div>
+          </div>
+          <div class="pipeline-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+          <div class="pipeline-stage">
+            <div class="pipeline-node active"><i class="fa-solid fa-chart-line"></i></div>
+            <div class="pipeline-node-label">售前</div>
+            <div class="pipeline-node-count">2</div>
+          </div>
+          <div class="pipeline-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+          <div class="pipeline-stage">
+            <div class="pipeline-node active"><i class="fa-solid fa-crown"></i></div>
+            <div class="pipeline-node-label">产品</div>
+            <div class="pipeline-node-count">1</div>
+          </div>
+          <div class="pipeline-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+          <div class="pipeline-stage">
+            <div class="pipeline-node"><i class="fa-solid fa-pen-clip"></i></div>
+            <div class="pipeline-node-label">需求</div>
+            <div class="pipeline-node-count">4</div>
+          </div>
+          <div class="pipeline-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+          <div class="pipeline-stage">
+            <div class="pipeline-node"><i class="fa-solid fa-drafting-compass"></i></div>
+            <div class="pipeline-node-label">架构</div>
+            <div class="pipeline-node-count">2</div>
+          </div>
+          <div class="pipeline-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+          <div class="pipeline-stage">
+            <div class="pipeline-node"><i class="fa-solid fa-code"></i></div>
+            <div class="pipeline-node-label">编码</div>
+            <div class="pipeline-node-count">3</div>
+          </div>
+          <div class="pipeline-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+          <div class="pipeline-stage">
+            <div class="pipeline-node"><i class="fa-solid fa-flask"></i></div>
+            <div class="pipeline-node-label">测试</div>
+            <div class="pipeline-node-count">1</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Content Grid -->
+      <div class="section-grid animate-fade-in" style="animation-delay:0.2s;">
+        <div class="card">
+          <div class="card-header">
+            <i class="fa-solid fa-clock-rotate-left" style="color:var(--md3-primary);"></i>
+            <div class="card-title">最近活动</div>
+          </div>
+          <div class="card-body" style="padding:0;">
+            <div class="activity-item" style="display:flex;align-items:flex-start;gap:12px;padding:14px 20px;border-bottom:1px solid var(--md3-outline-variant);">
+              <div style="width:32px;height:32px;background:var(--md3-primary-container);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--md3-on-primary-container);font-size:12px;flex-shrink:0;"><i class="fa-solid fa-check"></i></div>
+              <div style="flex:1;">
+                <div style="font-size:13px;font-weight:500;margin-bottom:2px;">REQ-005 进入测试阶段</div>
+                <div style="font-size:12px;color:var(--md3-on-surface-variant);">测试 AI 完成了测试用例生成，通过率 96%</div>
+              </div>
+              <div style="font-size:11px;color:var(--md3-on-surface-variant);white-space:nowrap;">3分钟前</div>
+            </div>
+            <div class="activity-item" style="display:flex;align-items:flex-start;gap:12px;padding:14px 20px;border-bottom:1px solid var(--md3-outline-variant);">
+              <div style="width:32px;height:32px;background:var(--md3-tertiary-container);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--md3-on-tertiary-container);font-size:12px;flex-shrink:0;"><i class="fa-solid fa-code-commit"></i></div>
+              <div style="flex:1;">
+                <div style="font-size:13px;font-weight:500;margin-bottom:2px;">REQ-003 技术设计已批准</div>
+                <div style="font-size:12px;color:var(--md3-on-surface-variant);">研发工程师张明确认架构方案，开始编码</div>
+              </div>
+              <div style="font-size:11px;color:var(--md3-on-surface-variant);white-space:nowrap;">28分钟前</div>
+            </div>
+            <div class="activity-item" style="display:flex;align-items:flex-start;gap:12px;padding:14px 20px;border-bottom:1px solid var(--md3-outline-variant);">
+              <div style="width:32px;height:32px;background:var(--md3-success-container);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--md3-success);font-size:12px;flex-shrink:0;"><i class="fa-solid fa-inbox"></i></div>
+              <div style="flex:1;">
+                <div style="font-size:13px;font-weight:500;margin-bottom:2px;">新意向录入：XX科技智能客服</div>
+                <div style="font-size:12px;color:var(--md3-on-surface-variant);">一线情报 AI 自动从飞书表格录入</div>
+              </div>
+              <div style="font-size:11px;color:var(--md3-on-surface-variant);white-space:nowrap;">1小时前</div>
+            </div>
+            <div class="activity-item" style="display:flex;align-items:flex-start;gap:12px;padding:14px 20px;">
+              <div style="width:32px;height:32px;background:var(--md3-secondary-container);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--md3-on-secondary-container);font-size:12px;flex-shrink:0;"><i class="fa-solid fa-thumbs-up"></i></div>
+              <div style="flex:1;">
+                <div style="font-size:13px;font-weight:500;margin-bottom:2px;">P0高价值确认：YY公司数据看板</div>
+                <div style="font-size:12px;color:var(--md3-on-surface-variant);">AI产品负责人基于ROI评分确认</div>
+              </div>
+              <div style="font-size:11px;color:var(--md3-on-surface-variant);white-space:nowrap;">2小时前</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 情报来源监控卡片 -->
+        <div class="card" onclick="navigateTo('intelligence')" style="cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='var(--md3-shadow-elevation-3)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='none'">
+          <div class="card-header">
+            <i class="fa-solid fa-satellite-dish" style="color:var(--md3-primary);"></i>
+            <div class="card-title">情报来源监控（今日）</div>
+            <i class="fa-solid fa-chevron-right" style="color:var(--md3-outline);font-size:12px;margin-left:auto;"></i>
+          </div>
+          <div class="card-body">
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;">
+              <div style="padding:12px;background:var(--md3-primary-container);border-radius:var(--radius-md);">
+                <div style="font-size:11px;color:var(--md3-on-primary-container);margin-bottom:4px;">📊 社交媒体</div>
+                <div style="font-size:18px;font-weight:700;color:var(--md3-on-primary-container);">1,247 条</div>
+                <div style="font-size:10px;color:var(--md3-on-primary-container);opacity:0.8;">小红书 623 + 抖音 412 + 淘宝 212</div>
+              </div>
+              <div style="padding:12px;background:var(--md3-secondary-container);border-radius:var(--radius-md);">
+                <div style="font-size:11px;color:var(--md3-on-secondary-container);margin-bottom:4px;">🏢 竞品动态</div>
+                <div style="font-size:18px;font-weight:700;color:var(--md3-on-secondary-container);">8 条</div>
+                <div style="font-size:10px;color:var(--md3-on-secondary-container);opacity:0.8;">官网更新 3 + 发布会 2 + PR 3</div>
+              </div>
+              <div style="padding:12px;background:var(--md3-tertiary-container);border-radius:var(--radius-md);">
+                <div style="font-size:11px;color:var(--md3-on-tertiary-container);margin-bottom:4px;">📰 行业舆情</div>
+                <div style="font-size:18px;font-weight:700;color:var(--md3-on-tertiary-container);">15 条</div>
+                <div style="font-size:10px;color:var(--md3-on-tertiary-container);opacity:0.8;">36 氪 5 + 虎嗅 4 + 界面 6</div>
+              </div>
+              <div style="padding:12px;background:var(--md3-success-container);border-radius:var(--radius-md);">
+                <div style="font-size:11px;color:var(--md3-success);margin-bottom:4px;">📋 飞书表格</div>
+                <div style="font-size:18px;font-weight:700;color:var(--md3-success);">23 条</div>
+                <div style="font-size:10px;color:var(--md3-success);opacity:0.8;">客户跟进表新增</div>
+              </div>
+            </div>
+            <div style="margin-top:16px;padding:12px;background:var(--md3-surface-container-low);border-radius:var(--radius-md);">
+              <div style="font-size:12px;font-weight:500;margin-bottom:8px;">🔥 热点话题 Top 5</div>
+              <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                <span style="padding:4px 10px;background:var(--md3-primary);color:var(--md3-on-primary);border-radius:12px;font-size:11px;">AI 智能报价 #127</span>
+                <span style="padding:4px 10px;background:var(--md3-secondary);color:var(--md3-on-secondary);border-radius:12px;font-size:11px;">全屋定制 #98</span>
+                <span style="padding:4px 10px;background:var(--md3-tertiary);color:var(--md3-on-tertiary);border-radius:12px;font-size:11px;">装备制造业 #76</span>
+                <span style="padding:4px 10px;background:var(--md3-outline);color:var(--md3-on-surface);border-radius:12px;font-size:11px;">SaaS 平台 #54</span>
+                <span style="padding:4px 10px;background:var(--md3-outline);color:var(--md3-on-surface);border-radius:12px;font-size:11px;">数据分析 #43</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 人工情报提交入口 -->
+        <div class="card">
+          <div class="card-header">
+            <i class="fa-solid fa-circle-plus" style="color:var(--md3-primary);"></i>
+            <div class="card-title">人工情报提交</div>
+          </div>
+          <div class="card-body">
+            <div style="padding:16px;background:var(--md3-surface-container-low);border-radius:var(--radius-md);margin-bottom:12px;">
+              <div style="font-size:13px;font-weight:500;margin-bottom:8px;">🎯 提交竞品分析或研究报告</div>
+              <div style="font-size:12px;color:var(--md3-on-surface-variant);margin-bottom:12px;">提供竞品网站 URL 或研究报告链接/PDF，指定研究方向（如"分析竞品 X 的定价策略"），AI 将自动提取情报需求并生成结构化报告。</div>
+              <div style="display:flex;gap:8px;">
+                <input type="text" placeholder="输入竞品网站 URL 或研究报告链接" style="flex:1;padding:10px 14px;border:1px solid var(--md3-outline);border-radius:var(--radius-sm);font-size:13px;background:var(--md3-surface);color:var(--md3-on-surface);">
+                <button class="btn btn-filled" style="white-space:nowrap;">提交分析</button>
+              </div>
+              <div style="margin-top:12px;display:flex;gap:8px;align-items:center;">
+                <button class="btn btn-tonal btn-sm" style="font-size:12px;"><i class="fa-solid fa-file-pdf"></i> 上传 PDF 报告</button>
+                <button class="btn btn-tonal btn-sm" style="font-size:12px;"><i class="fa-solid fa-link"></i> 批量导入 URL</button>
+                <span style="font-size:11px;color:var(--md3-on-surface-variant);margin-left:8px;">支持格式：PDF, URL, Word</span>
+              </div>
+            </div>
+            <div style="padding:12px;background:var(--md3-primary-container);border-radius:var(--radius-md);">
+              <div style="display:flex;align-items:center;gap:12px;">
+                <div style="width:40px;height:40px;background:var(--md3-on-primary-container);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--md3-primary-container);font-size:16px;"><i class="fa-solid fa-lightbulb"></i></div>
+                <div style="flex:1;">
+                  <div style="font-size:12px;font-weight:500;color:var(--md3-on-primary-container);">💡 情报分析进行中</div>
+                  <div style="font-size:11px;color:var(--md3-on-primary-container);opacity:0.9;">正在分析「竞品 X 官网」- 预计 3 分钟完成</div>
+                </div>
+                <div style="text-align:right;">
+                  <div style="font-size:16px;font-weight:700;color:var(--md3-on-primary-container);">78%</div>
+                  <div style="font-size:10px;color:var(--md3-on-primary-container);opacity:0.8;">处理中</div>
+                </div>
+              </div>
+              <div style="margin-top:10px;height:4px;background:var(--md3-on-primary-container);border-radius:2px;overflow:hidden;opacity:0.5;">
+                <div style="width:78%;height:100%;background:var(--md3-on-primary-container);border-radius:2px;animation:progress 2s ease-in-out;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <i class="fa-solid fa-triangle-exclamation" style="color:var(--md3-orange);"></i>
+            <div class="card-title">待处理事项</div>
+          </div>
+          <div class="card-body">
+            <div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--md3-surface-container-low);border-radius:var(--radius-md);margin-bottom:12px;">
+              <div style="width:36px;height:36px;background:var(--md3-error-container);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--md3-on-error-container);"><i class="fa-solid fa-pen"></i></div>
+              <div style="flex:1;">
+                <div style="font-size:13px;font-weight:500;">规范变更待审批</div>
+                <div style="font-size:12px;color:var(--md3-on-surface-variant);">技术设计规范 v2.1 等待产品负责人审批</div>
+              </div>
+              <button class="btn btn-sm btn-filled">审批</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--md3-surface-container-low);border-radius:var(--radius-md);margin-bottom:12px;">
+              <div style="width:36px;height:36px;background:var(--md3-primary-container);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--md3-on-primary-container);"><i class="fa-solid fa-check"></i></div>
+              <div style="flex:1;">
+                <div style="font-size:13px;font-weight:500;">需求评审确认</div>
+                <div style="font-size:12px;color:var(--md3-on-surface-variant);">REQ-006 需要产品设计师确认方案</div>
+              </div>
+              <button class="btn btn-sm btn-outlined">查看</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--md3-surface-container-low);border-radius:var(--radius-md);">
+              <div style="width:36px;height:36px;background:var(--md3-success-container);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--md3-success);"><i class="fa-solid fa-flask"></i></div>
+              <div style="flex:1;">
+                <div style="font-size:13px;font-weight:500;">测试验收</div>
+                <div style="font-size:12px;color:var(--md3-on-surface-variant);">REQ-003 测试通过，等待最终验收</div>
+              </div>
+              <button class="btn btn-sm btn-tonal">验收</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: OPPORTUNITIES -->
+    <div class="content page" id="page-opportunities">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+        <div style="display:flex;gap:12px;align-items:center;">
+          <div class="form-input" style="width:240px;display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:text;">
+            <i class="fa-solid fa-magnifying-glass" style="color:var(--md3-on-surface-variant);"></i>
+            <input type="text" placeholder="搜索意向..." style="border:none;outline:none;background:transparent;font-size:14px;color:var(--md3-on-surface);width:100%;" />
+          </div>
+          <select class="form-select" style="width:140px;">
+            <option value="">全部状态</option>
+            <option value="new">新意向</option>
+            <option value="evaluating">评估中</option>
+            <option value="p0">P0-高价值</option>
+          </select>
+          <select class="form-select" style="width:120px;">
+            <option value="">全部优先级</option>
+            <option value="p0">P0</option>
+            <option value="p1">P1</option>
+            <option value="p2">P2</option>
+          </select>
+          <select class="form-select" style="width:140px;">
+            <option value="">全部来源</option>
+            <option value="social">社交媒体</option>
+            <option value="competitor">竞品动态</option>
+            <option value="media">行业舆情</option>
+            <option value="feishu">飞书表格</option>
+            <option value="manual">人工提交</option>
+          </select>
+        </div>
+        <button class="fab-label" onclick="showToast('意向录入功能')"><i class="fa-solid fa-plus"></i> 手动录入</button>
+      </div>
+
+      <div class="card animate-fade-in">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th><i class="fa-solid fa-star" style="color:var(--md3-on-surface-variant);font-size:11px;"></i></th>
+              <th>意向标题</th>
+              <th>客户</th>
+              <th>来源</th>
+              <th>优先级</th>
+              <th>状态</th>
+              <th>负责人</th>
+              <th>创建时间</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><i class="fa-solid fa-fire" style="color:#E65100;"></i></td>
+              <td><div style="font-weight:500;">XX科技智能客服系统</div><div style="font-size:12px;color:var(--md3-on-surface-variant);">需要一套完整的智能客服解决方案</div></td>
+              <td>XX科技有限公司</td>
+              <td><span style="font-size:12px;color:var(--md3-on-surface-variant);">📊 小红书 - 用户评论</span><div style="font-size:11px;color:var(--md3-outline);">INT-20260330-001</div></td><td><span class="badge badge-p0">P0 高价值</span></td>
+              <td><span class="badge badge-active">评估完成</span></td>
+              <td><span class="agent-badge active"><span class="dot"></span>售前AI</span></td>
+              <td class="text-muted">2026-03-30</td>
+              <td><button class="btn btn-sm btn-text">查看</button></td>
+            </tr>
+            <tr>
+              <td><i class="fa-solid fa-chart-simple" style="color:var(--md3-primary);"></i></td>
+              <td><div style="font-weight:500;">YY公司数据看板</div><div style="font-size:12px;color:var(--md3-on-surface-variant);">企业级 BI 数据可视化需求</div></td>
+              <td>YY集团</td>
+              <td><span style="font-size:12px;color:var(--md3-on-surface-variant);">🏢 竞品官网 - 产品更新</span><div style="font-size:11px;color:var(--md3-outline);">INT-20260329-003</div></td><td><span class="badge badge-p0">P0 高价值</span></td>
+              <td><span class="badge badge-new">已批准</span></td>
+              <td><span class="agent-badge active"><span class="dot"></span>产品负责人</span></td>
+              <td class="text-muted">2026-03-29</td>
+              <td>
+                <button class="btn btn-sm btn-text">查看</button>
+                <button class="btn btn-sm btn-filled" onclick="showToast('已转为特性：智能数据看板')">🔄 转特性</button>
+              </td>
+            </tr>
+            <tr>
+              <td><i class="fa-solid fa-calendar" style="color:var(--md3-tertiary);"></i></td>
+              <td><div style="font-weight:500;">ZZ公司AI排班系统</div><div style="font-size:12px;color:var(--md3-on-surface-variant);">智能排班调度算法需求</div></td>
+              <td>ZZ人力资源</td>
+              <td><span style="font-size:12px;color:var(--md3-on-surface-variant);">📋 飞书表格 - 客户跟进</span><div style="font-size:11px;color:var(--md3-outline);">INT-20260328-005</div></td><td><span class="badge badge-p1">P1 中价值</span></td>
+              <td><span class="badge badge-pending">需求分析中</span></td>
+              <td><span class="agent-badge active"><span class="dot"></span>需求AI</span></td>
+              <td class="text-muted">2026-03-28</td>
+              <td><button class="btn btn-sm btn-text">查看</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PAGE: KANBAN -->
+    <div class="content page" id="page-kanban">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-sm btn-filled"><i class="fa-solid fa-columns"></i> 看板</button>
+          <button class="btn btn-sm btn-outlined"><i class="fa-solid fa-list"></i> 列表</button>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-sm btn-tonal" onclick="showToast('批量转需求')"><i class="fa-solid fa-diagram-project"></i> 批量转需求</button>
+          <button class="fab-label"><i class="fa-solid fa-plus"></i> 新建特性</button>
+        </div>
+      </div>
+      <div class="kanban-board animate-fade-in">
+        <div class="kanban-col">
+          <div class="kanban-col-header">
+            <div class="kanban-col-title">特性池</div>
+            <div class="kanban-col-count">3</div>
+          </div>
+          <div class="kanban-cards">
+            <div class="kanban-card">
+              <div style="margin-bottom:8px;"><span class="badge badge-p0">P0</span></div>
+              <div class="kanban-card-title">智能客服系统</div>
+              <div class="kanban-card-meta">
+                <span class="badge badge-new" style="font-size:10px;padding:2px 8px;">新录入</span>
+              </div>
+              <div class="kanban-card-info"><i class="fa-solid fa-building"></i> XX科技</div>
+              <div style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--md3-outline-variant);">
+                <div style="font-size:11px;color:var(--md3-on-surface-variant);"><i class="fa-solid fa-link"></i> 来自意向：<span style="color:var(--md3-primary);cursor:pointer;">INT-2024-0091</span></div>
+              </div>
+            </div>
+            <div class="kanban-card">
+              <div style="margin-bottom:8px;"><span class="badge badge-p1">P1</span></div>
+              <div class="kanban-card-title">数据可视化看板</div>
+              <div class="kanban-card-meta">
+                <span class="badge badge-active" style="font-size:10px;padding:2px 8px;">已批准</span>
+              </div>
+              <div class="kanban-card-info"><i class="fa-solid fa-building"></i> YY集团</div>
+              <div style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--md3-outline-variant);">
+                <div style="font-size:11px;color:var(--md3-on-surface-variant);margin-bottom:6px;"><i class="fa-solid fa-link"></i> 来自意向：<span style="color:var(--md3-primary);cursor:pointer;">INT-2024-0089</span></div>
+                <button class="btn btn-sm btn-filled" onclick="navigateTo('requirement-split')" style="width:100%;"><i class="fa-solid fa-diagram-project"></i> 开始需求分析</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="kanban-col">
+          <div class="kanban-col-header">
+            <div class="kanban-col-title">需求分析</div>
+            <div class="kanban-col-count">2</div>
+          </div>
+          <div class="kanban-cards">
+            <div class="kanban-card">
+              <div style="margin-bottom:8px;"><span class="badge badge-p1">P1</span></div>
+              <div class="kanban-card-title">AI智能排班系统</div>
+              <div class="kanban-card-meta">
+                <span class="agent-badge active" style="font-size:10px;"><span class="dot"></span>需求AI</span>
+              </div>
+              <div class="kanban-card-info"><i class="fa-solid fa-clock"></i> 停留 3 天</div>
+              <div style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--md3-outline-variant);">
+                <div style="font-size:11px;color:var(--md3-on-surface-variant);margin-bottom:6px;"><i class="fa-solid fa-link"></i> 来自意向：<span style="color:var(--md3-primary);cursor:pointer;">INT-2024-0076</span></div>
+                <button class="btn btn-sm btn-tonal" onclick="navigateTo('requirement-split')" style="width:100%;"><i class="fa-solid fa-diagram-project"></i> 查看需求拆分</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="kanban-col">
+          <div class="kanban-col-header">
+            <div class="kanban-col-title">开发中</div>
+            <div class="kanban-col-count">2</div>
+          </div>
+          <div class="kanban-cards">
+            <div class="kanban-card">
+              <div style="margin-bottom:8px;"><span class="badge badge-p0">P0</span></div>
+              <div class="kanban-card-title">自动日报生成</div>
+              <div class="kanban-card-meta">
+                <span class="agent-badge active" style="font-size:10px;"><span class="dot"></span>编码AI</span>
+              </div>
+              <div class="kanban-card-info"><i class="fa-solid fa-code-branch"></i> feature/REQ-002</div>
+              <div style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--md3-outline-variant);">
+                <div style="font-size:11px;color:var(--md3-on-surface-variant);"><i class="fa-solid fa-link"></i> 来自意向：<span style="color:var(--md3-primary);cursor:pointer;">INT-2024-0052</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="kanban-col">
+          <div class="kanban-col-header">
+            <div class="kanban-col-title">测试中</div>
+            <div class="kanban-col-count">1</div>
+          </div>
+          <div class="kanban-cards">
+            <div class="kanban-card">
+              <div style="margin-bottom:8px;"><span class="badge badge-p0">P0</span></div>
+              <div class="kanban-card-title">移动端审批流</div>
+              <div class="kanban-card-meta">
+                <span class="agent-badge active" style="font-size:10px;"><span class="dot"></span>测试AI</span>
+              </div>
+              <div class="kanban-card-info"><i class="fa-solid fa-check-circle" style="color:var(--md3-success);"></i> 通过率 96%</div>
+              <div style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--md3-outline-variant);">
+                <div style="font-size:11px;color:var(--md3-on-surface-variant);"><i class="fa-solid fa-link"></i> 来自意向：<span style="color:var(--md3-primary);cursor:pointer;">INT-2024-0038</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="kanban-col">
+          <div class="kanban-col-header">
+            <div class="kanban-col-title">已完成</div>
+            <div class="kanban-col-count">5</div>
+          </div>
+          <div class="kanban-cards">
+            <div class="kanban-card">
+              <div style="margin-bottom:8px;"><span class="badge badge-p1">P1</span></div>
+              <div class="kanban-card-title">文档管理系统</div>
+              <div class="kanban-card-meta">
+                <span class="badge badge-active" style="font-size:10px;padding:2px 8px;"><i class="fa-solid fa-check"></i> 已完成</span>
+              </div>
+              <div class="kanban-card-info"><i class="fa-solid fa-flag-checkered" style="color:var(--md3-success);"></i> 2026-03-25</div>
+              <div style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--md3-outline-variant);">
+                <div style="font-size:11px;color:var(--md3-on-surface-variant);"><i class="fa-solid fa-link"></i> 来自意向：<span style="color:var(--md3-primary);cursor:pointer;">INT-2024-0015</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: AGENTS -->
+    <div class="content page" id="page-agents">
+      <div class="tabs">
+        <div class="tab active" data-tab="list">Agent 列表</div>
+        <div class="tab" data-tab="onboarding">Agent 入驻</div>
+        <div class="tab" data-tab="mappings">负责人映射</div>
+      </div>
+
+      <!-- Agent List Tab -->
+      <div id="tab-list" class="tab-content active">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+          <div style="display:flex;gap:8px;">
+            <select class="form-select" style="width:140px;">
+              <option value="">全部状态</option>
+              <option value="active">活跃</option>
+              <option value="pending">待认领</option>
+              <option value="suspended">已暂停</option>
+            </select>
+            <select class="form-select" style="width:140px;">
+              <option value="">全部角色</option>
+              <option value="intelligence">一线情报</option>
+              <option value="presales">售前分析</option>
+              <option value="requirement">需求分析</option>
+              <option value="architect">架构设计</option>
+              <option value="coder">编码</option>
+              <option value="tester">测试</option>
+            </select>
+          </div>
+          <button class="btn btn-filled" onclick="navigateTo('onboarding')"><i class="fa-solid fa-plus"></i> 接入新 Agent</button>
+        </div>
+
+        <div class="card animate-fade-in">
+          <div style="padding:16px 20px;border-bottom:1px solid var(--md3-outline-variant);display:flex;align-items:center;gap:8px;">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--md3-success);"></div>
+            <span style="font-size:14px;font-weight:500;">活跃 Agent：7 个</span>
+          </div>
+          <div style="padding:8px 20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;">
+            <div style="padding:16px;background:var(--md3-surface-container-low);border-radius:var(--radius-md);display:flex;align-items:flex-start;gap:12px;border:1px solid var(--md3-outline-variant);">
+              <div style="width:44px;height:44px;background:var(--md3-primary-container);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;color:var(--md3-on-primary-container);font-size:18px;flex-shrink:0;"><i class="fa-solid fa-satellite-dish"></i></div>
+              <div style="flex:1;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                  <span style="font-size:15px;font-weight:600;">一线情报 AI</span>
+                  <span class="agent-badge active" style="font-size:11px;"><span class="dot"></span>活跃</span>
+                </div>
+                <div style="font-size:12px;color:var(--md3-on-surface-variant);margin-bottom:8px;">arch_agent_001 · intelligence</div>
+                <div style="display:flex;gap:8px;">
+                  <button class="btn btn-sm btn-outlined">暂停</button>
+                  <button class="btn btn-sm btn-text">编辑</button>
+                </div>
+              </div>
+            </div>
+            <div style="padding:16px;background:var(--md3-surface-container-low);border-radius:var(--radius-md);display:flex;align-items:flex-start;gap:12px;border:1px solid var(--md3-outline-variant);">
+              <div style="width:44px;height:44px;background:var(--md3-tertiary-container);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;color:var(--md3-on-tertiary-container);font-size:18px;flex-shrink:0;"><i class="fa-solid fa-chart-line"></i></div>
+              <div style="flex:1;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                  <span style="font-size:15px;font-weight:600;">售前分析 AI</span>
+                  <span class="agent-badge active" style="font-size:11px;"><span class="dot"></span>活跃</span>
+                </div>
+                <div style="font-size:12px;color:var(--md3-on-surface-variant);margin-bottom:8px;">presales_agent_001 · presales</div>
+                <div style="display:flex;gap:8px;">
+                  <button class="btn btn-sm btn-outlined">暂停</button>
+                  <button class="btn btn-sm btn-text">编辑</button>
+                </div>
+              </div>
+            </div>
+            <div style="padding:16px;background:var(--md3-surface-container-low);border-radius:var(--radius-md);display:flex;align-items:flex-start;gap:12px;border:1px solid var(--md3-outline-variant);">
+              <div style="width:44px;height:44px;background:var(--md3-secondary-container);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;color:var(--md3-on-secondary-container);font-size:18px;flex-shrink:0;"><i class="fa-solid fa-drafting-compass"></i></div>
+              <div style="flex:1;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                  <span style="font-size:15px;font-weight:600;">架构师 AI</span>
+                  <span class="agent-badge active" style="font-size:11px;"><span class="dot"></span>活跃</span>
+                </div>
+                <div style="font-size:12px;color:var(--md3-on-surface-variant);margin-bottom:8px;">arch_agent_002 · architect</div>
+                <div style="display:flex;gap:8px;">
+                  <button class="btn btn-sm btn-outlined">暂停</button>
+                  <button class="btn btn-sm btn-text">编辑</button>
+                </div>
+              </div>
+            </div>
+            <div style="padding:16px;background:var(--md3-surface-container-low);border-radius:var(--radius-md);display:flex;align-items:flex-start;gap:12px;border:1px solid var(--md3-outline-variant);">
+              <div style="width:44px;height:44px;background:#FFF3E0;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;color:#E65100;font-size:18px;flex-shrink:0;"><i class="fa-solid fa-pen-clip"></i></div>
+              <div style="flex:1;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                  <span style="font-size:15px;font-weight:600;">需求分析师 AI</span>
+                  <span class="agent-badge pending" style="font-size:11px;"><span class="dot"></span>待认领</span>
+                </div>
+                <div style="font-size:12px;color:var(--md3-on-surface-variant);margin-bottom:8px;">req_agent_001 · requirement</div>
+                <div style="display:flex;gap:8px;">
+                  <button class="btn btn-sm btn-filled">发送验证码</button>
+                </div>
+              </div>
+            </div>
+            <div style="padding:16px;background:var(--md3-surface-container-low);border-radius:var(--radius-md);display:flex;align-items:flex-start;gap:12px;border:1px solid var(--md3-outline-variant);">
+              <div style="width:44px;height:44px;background:var(--md3-surface-container-high);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;color:var(--md3-on-surface-variant);font-size:18px;flex-shrink:0;"><i class="fa-solid fa-shield-halved"></i></div>
+              <div style="flex:1;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                  <span style="font-size:15px;font-weight:600;">兜底 Agent</span>
+                  <span class="agent-badge suspended" style="font-size:11px;"><span class="dot"></span>已暂停</span>
+                </div>
+                <div style="font-size:12px;color:var(--md3-on-surface-variant);margin-bottom:8px;">fallback_agent_001 · fallback</div>
+                <div style="display:flex;gap:8px;">
+                  <button class="btn btn-sm btn-filled">启用</button>
+                  <button class="btn btn-sm btn-text">编辑</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Onboarding Tab -->
+      <div id="tab-onboarding" class="tab-content" style="display:none;">
+        <div class="section-grid">
+          <div class="card">
+            <div class="card-header">
+              <i class="fa-solid fa-robot" style="color:var(--md3-primary);"></i>
+              <div class="card-title">Agent 注册</div>
+            </div>
+            <div class="card-body">
+              <div class="form-group">
+                <label class="form-label">Agent 名称 *</label>
+                <input type="text" class="form-input" placeholder="如: arch_agent_001" />
+                <div class="form-hint">唯一标识名，支持字母、数字、下划线</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">显示名称</label>
+                <input type="text" class="form-input" placeholder="如: 架构师 AI" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">角色 *</label>
+                <select class="form-select">
+                  <option value="">选择 Agent 角色</option>
+                  <option value="intelligence">一线情报</option>
+                  <option value="presales">售前分析</option>
+                  <option value="requirement">需求分析</option>
+                  <option value="architect">架构设计</option>
+                  <option value="coder">编码</option>
+                  <option value="tester">测试</option>
+                  <option value="fallback">兜底</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">描述</label>
+                <textarea class="form-textarea" placeholder="描述此 Agent 的职责和能力..."></textarea>
+              </div>
+              <div class="form-group">
+                <label class="form-label">邮箱 *</label>
+                <input type="email" class="form-input" placeholder="agent@company.com" />
+                <div class="form-hint">用于接收验证码</div>
+              </div>
+              <button class="btn btn-filled" style="width:100%;" onclick="showToast('注册成功，验证码已发送')"><i class="fa-solid fa-paper-plane"></i> 提交注册</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <i class="fa-solid fa-key" style="color:var(--md3-tertiary);"></i>
+              <div class="card-title">验证码认领</div>
+            </div>
+            <div class="card-body">
+              <div class="onboarding-flow">
+                <div class="onboarding-step done">
+                  <div class="onboarding-step-num"><i class="fa-solid fa-check" style="font-size:12px;"></i></div>
+                  <div class="onboarding-step-label">注册</div>
+                </div>
+                <div class="onboarding-connector done"></div>
+                <div class="onboarding-step active">
+                  <div class="onboarding-step-num">2</div>
+                  <div class="onboarding-step-label">验证邮箱</div>
+                </div>
+                <div class="onboarding-connector"></div>
+                <div class="onboarding-step">
+                  <div class="onboarding-step-num">3</div>
+                  <div class="onboarding-step-label">激活</div>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">认领 Token</label>
+                <input type="text" class="form-input" placeholder="粘贴注册后获得的 claim_token" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">验证码 *</label>
+                <input type="text" class="form-input" placeholder="6位验证码（10分钟内有效）" maxlength="6" style="letter-spacing:4px;font-size:18px;text-align:center;" />
+                <div class="form-hint">验证码已发送至您的邮箱</div>
+              </div>
+              <button class="btn btn-text" style="margin-bottom:16px;"><i class="fa-solid fa-rotate-right"></i> 重新发送验证码</button>
+              <button class="btn btn-filled" style="width:100%;" onclick="showToast('Agent 激活成功！')"><i class="fa-solid fa-check"></i> 完成激活</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mappings Tab -->
+      <div id="tab-mappings" class="tab-content" style="display:none;">
+        <div class="card animate-fade-in">
+          <div class="card-header">
+            <i class="fa-solid fa-link" style="color:var(--md3-secondary);"></i>
+            <div class="card-title">Agent 与 Pipeline 阶段映射</div>
+            <button class="btn btn-sm btn-outlined" style="margin-left:auto;"><i class="fa-solid fa-plus"></i> 添加映射</button>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Agent</th>
+                <th>角色</th>
+                <th>Pipeline 阶段</th>
+                <th>优先级</th>
+                <th>状态</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><div style="display:flex;align-items:center;gap:8px;"><div style="width:28px;height:28px;background:var(--md3-primary-container);border-radius:4px;display:flex;align-items:center;justify-content:center;color:var(--md3-on-primary-container);font-size:12px;"><i class="fa-solid fa-satellite-dish"></i></div><span style="font-weight:500;">一线情报 AI</span></div></td>
+                <td>intelligence</td>
+                <td>商机录入</td>
+                <td><span class="badge badge-p0">优先级 1</span></td>
+                <td><span class="agent-badge active" style="font-size:11px;"><span class="dot"></span>活跃</span></td>
+                <td><button class="btn btn-sm btn-text">编辑</button></td>
+              </tr>
+              <tr>
+                <td><div style="display:flex;align-items:center;gap:8px;"><div style="width:28px;height:28px;background:var(--md3-tertiary-container);border-radius:4px;display:flex;align-items:center;justify-content:center;color:var(--md3-on-tertiary-container);font-size:12px;"><i class="fa-solid fa-chart-line"></i></div><span style="font-weight:500;">售前分析 AI</span></div></td>
+                <td>presales</td>
+                <td>优先级评估</td>
+                <td><span class="badge badge-p0">优先级 1</span></td>
+                <td><span class="agent-badge active" style="font-size:11px;"><span class="dot"></span>活跃</span></td>
+                <td><button class="btn btn-sm btn-text">编辑</button></td>
+              </tr>
+              <tr>
+                <td><div style="display:flex;align-items:center;gap:8px;"><div style="width:28px;height:28px;background:var(--md3-secondary-container);border-radius:4px;display:flex;align-items:center;justify-content:center;color:var(--md3-on-secondary-container);font-size:12px;"><i class="fa-solid fa-drafting-compass"></i></div><span style="font-weight:500;">架构师 AI</span></div></td>
+                <td>architect</td>
+                <td>技术设计</td>
+                <td><span class="badge badge-p0">优先级 1</span></td>
+                <td><span class="agent-badge active" style="font-size:11px;"><span class="dot"></span>活跃</span></td>
+                <td><button class="btn btn-sm btn-text">编辑</button></td>
+              </tr>
+              <tr>
+                <td><div style="display:flex;align-items:center;gap:8px;"><div style="width:28px;height:28px;background:#FFF3E0;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#E65100;font-size:12px;"><i class="fa-solid fa-flask"></i></div><span style="font-weight:500;">测试 AI</span></div></td>
+                <td>tester</td>
+                <td>测试执行</td>
+                <td><span class="badge badge-p0">优先级 1</span></td>
+                <td><span class="agent-badge active" style="font-size:11px;"><span class="dot"></span>活跃</span></td>
+                <td><button class="btn btn-sm btn-text">编辑</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: STAGE SPECS -->
+    <div class="content page" id="page-specs">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+        <div class="tabs" style="margin-bottom:0;border-bottom:none;">
+          <div class="tab active">全部</div>
+          <div class="tab">需求分析</div>
+          <div class="tab">技术设计</div>
+          <div class="tab">编码</div>
+          <div class="tab">测试</div>
+        </div>
+        <button class="btn btn-filled"><i class="fa-solid fa-plus"></i> 新建规范</button>
+      </div>
+
+      <div class="animate-fade-in">
+        <!-- Spec Card 1 -->
+        <div class="spec-card" style="border-left-color:var(--md3-success);">
+          <div class="spec-card-header">
+            <div style="width:40px;height:40px;background:var(--md3-secondary-container);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;color:var(--md3-on-secondary-container);font-size:16px;"><i class="fa-solid fa-drafting-compass"></i></div>
+            <div class="spec-card-title">技术设计规范</div>
+            <span class="badge badge-active" style="font-size:11px;">v2.1 已生效</span>
+            <div class="spec-card-actions">
+              <button class="btn btn-sm btn-outlined">查看</button>
+              <button class="btn btn-sm btn-text">编辑</button>
+              <button class="btn btn-sm btn-text">历史</button>
+            </div>
+          </div>
+          <div class="spec-card-meta">
+            <span><i class="fa-solid fa-layer-group"></i> 阶段: 技术设计</span>
+            <span><i class="fa-solid fa-user"></i> 创建人: @架构师AI</span>
+            <span><i class="fa-solid fa-calendar"></i> 2026-03-30</span>
+            <span><i class="fa-solid fa-eye" style="color:var(--md3-success);"></i> 上下游可见</span>
+          </div>
+          <div class="divider"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;font-size:13px;">
+            <div>
+              <div style="font-size:11px;color:var(--md3-on-surface-variant);margin-bottom:4px;font-weight:600;">输入要求</div>
+              <div style="color:var(--md3-on-surface-variant);">需求文档(SDD)、约束条件说明、性能基线要求</div>
+            </div>
+            <div>
+              <div style="font-size:11px;color:var(--md3-on-surface-variant);margin-bottom:4px;font-weight:600;">输出 Schema</div>
+              <div style="color:var(--md3-on-surface-variant);">架构图 + API列表 + 数据模型 + 部署方案</div>
+            </div>
+            <div>
+              <div style="font-size:11px;color:var(--md3-on-surface-variant);margin-bottom:4px;font-weight:600;">验收检查清单</div>
+              <div style="color:var(--md3-on-surface-variant);">3+视角 / 接口Schema / 性能基线</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Spec Card 2 -->
+        <div class="spec-card" style="border-left-color:#F57F17;">
+          <div class="spec-card-header">
+            <div style="width:40px;height:40px;background:#FFF3E0;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;color:#E65100;font-size:16px;"><i class="fa-solid fa-flask"></i></div>
+            <div class="spec-card-title">测试规范</div>
+            <span class="badge badge-pending" style="font-size:11px;">v1.3 待审批</span>
+            <div class="spec-card-actions">
+              <button class="btn btn-sm btn-filled">审批</button>
+              <button class="btn btn-sm btn-outlined">查看</button>
+              <button class="btn btn-sm btn-text">编辑</button>
+            </div>
+          </div>
+          <div class="spec-card-meta">
+            <span><i class="fa-solid fa-layer-group"></i> 阶段: 测试</span>
+            <span><i class="fa-solid fa-user"></i> 创建人: @测试AI</span>
+            <span><i class="fa-solid fa-calendar"></i> 2026-03-29</span>
+            <span><i class="fa-solid fa-eye-slash" style="color:var(--md3-on-surface-variant);"></i> 仅内部</span>
+          </div>
+          <div class="divider"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;font-size:13px;">
+            <div>
+              <div style="font-size:11px;color:var(--md3-on-surface-variant);margin-bottom:4px;font-weight:600;">输入要求</div>
+              <div style="color:var(--md3-on-surface-variant);">需求文档、技术设计文档、API接口定义</div>
+            </div>
+            <div>
+              <div style="font-size:11px;color:var(--md3-on-surface-variant);margin-bottom:4px;font-weight:600;">输出 Schema</div>
+              <div style="color:var(--md3-on-surface-variant);">测试用例集 + 执行结果 + 覆盖率报告</div>
+            </div>
+            <div>
+              <div style="font-size:11px;color:var(--md3-on-surface-variant);margin-bottom:4px;font-weight:600;">验收检查清单</div>
+              <div style="color:var(--md3-on-surface-variant);">覆盖率 > 80% / 所有P0用例通过</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Spec Card 3 -->
+        <div class="spec-card" style="border-left-color:var(--md3-primary);">
+          <div class="spec-card-header">
+            <div style="width:40px;height:40px;background:var(--md3-primary-container);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;color:var(--md3-on-primary-container);font-size:16px;"><i class="fa-solid fa-pen-clip"></i></div>
+            <div class="spec-card-title">需求分析规范</div>
+            <span class="badge badge-active" style="font-size:11px;">v1.0 已生效</span>
+            <div class="spec-card-actions">
+              <button class="btn btn-sm btn-outlined">查看</button>
+              <button class="btn btn-sm btn-text">编辑</button>
+              <button class="btn btn-sm btn-text">历史</button>
+            </div>
+          </div>
+          <div class="spec-card-meta">
+            <span><i class="fa-solid fa-layer-group"></i> 阶段: 需求分析</span>
+            <span><i class="fa-solid fa-user"></i> 创建人: @需求AI</span>
+            <span><i class="fa-solid fa-calendar"></i> 2026-03-28</span>
+            <span><i class="fa-solid fa-eye" style="color:var(--md3-success);"></i> 上下游可见</span>
+          </div>
+          <div class="divider"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;font-size:13px;">
+            <div>
+              <div style="font-size:11px;color:var(--md3-on-surface-variant);margin-bottom:4px;font-weight:600;">输入要求</div>
+              <div style="color:var(--md3-on-surface-variant);">特性描述、用户故事草稿、关联意向信息</div>
+            </div>
+            <div>
+              <div style="font-size:11px;color:var(--md3-on-surface-variant);margin-bottom:4px;font-weight:600;">输出 Schema</div>
+              <div style="color:var(--md3-on-surface-variant);">SDD文档 + 5套方案 + Eval标准</div>
+            </div>
+            <div>
+              <div style="font-size:11px;color:var(--md3-on-surface-variant);margin-bottom:4px;font-weight:600;">验收检查清单</div>
+              <div style="color:var(--md3-on-surface-variant);">5套方案完整 / Eval可测 / ROI评分</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: REQUIREMENT SPLITTING (需求拆分工作区) -->
+    <div class="content page" id="page-requirement-split">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+        <button class="btn btn-text" onclick="navigateTo('kanban')" style="padding:8px;"><i class="fa-solid fa-arrow-left"></i> 返回看板</button>
+        <div style="flex:1;">
+          <h2 style="font-size:20px;font-weight:600;margin-bottom:4px;">🎯 需求拆分工作区</h2>
+          <div style="font-size:13px;color:var(--md3-on-surface-variant);">特性 FEAT-001 · 智能客服系统 · 产品设计师：李娜 + 需求分析 AI</div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-outlined"><i class="fa-solid fa-floppy-disk"></i> 保存草稿</button>
+          <button class="btn btn-filled" onclick="showToast('已生成 5 个需求，需求分析 AI 开始细化 SDD 文档')"><i class="fa-solid fa-check"></i> 确认拆分</button>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:350px 1fr;gap:20px;align-items:start;">
+        
+        <!-- 左侧：特性详情 -->
+        <div class="card">
+          <div class="card-header">
+            <i class="fa-solid fa-star" style="color:var(--md3-primary);"></i>
+            <div class="card-title">原始特性</div>
+          </div>
+          <div class="card-body">
+            <div style="margin-bottom:16px;">
+              <div style="font-size:11px;color:var(--md3-on-surface-variant);margin-bottom:4px;">特性 ID</div>
+              <div style="font-size:13px;font-weight:500;">FEAT-001</div>
+            </div>
+            <div style="margin-bottom:16px;">
+              <div style="font-size:11px;color:var(--md3-on-surface-variant);margin-bottom:4px;">特性名称</div>
+              <div style="font-size:14px;font-weight:600;">智能客服系统</div>
+            </div>
+            <div style="margin-bottom:16px;">
+              <div style="font-size:11px;color:var(--md3-on-surface-variant);margin-bottom:4px;">来源意向</div>
+              <div style="font-size:13px;"><i class="fa-solid fa-link"></i> INT-20260330-001</div>
+            </div>
+            <div style="margin-bottom:16px;">
+              <div style="font-size:11px;color:var(--md3-on-surface-variant);margin-bottom:4px;">客户</div>
+              <div style="font-size:13px;">XX 科技有限公司</div>
+            </div>
+            <div style="margin-bottom:16px;">
+              <div style="font-size:11px;color:var(--md3-on-surface-variant);margin-bottom:4px;">特性描述</div>
+              <div style="font-size:13px;line-height:1.6;">需要一套完整的智能客服解决方案，包括自动问答、工单分类、情绪识别、智能路由等功能。</div>
+            </div>
+            <div style="padding:12px;background:var(--md3-primary-container);border-radius:var(--radius-md);">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                <i class="fa-solid fa-robot" style="color:var(--md3-on-primary-container);"></i>
+                <div style="font-size:12px;font-weight:500;color:var(--md3-on-primary-container);">需求分析 AI 已就绪</div>
+              </div>
+              <div style="font-size:11px;color:var(--md3-on-primary-container);opacity:0.9;">已分析特性描述，建议拆分为 5 个需求</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右侧：AI 建议的需求拆分方案 -->
+        <div class="card">
+          <div class="card-header">
+            <i class="fa-solid fa-diagram-project" style="color:var(--md3-primary);"></i>
+            <div class="card-title">AI 建议的需求拆分方案</div>
+            <div style="font-size:12px;color:var(--md3-on-surface-variant);margin-left:auto;">共 5 个需求</div>
+          </div>
+          <div class="card-body" style="padding:0;">
+            
+            <!-- 需求 1 -->
+            <div style="padding:16px;border-bottom:1px solid var(--md3-outline-variant);">
+              <div style="display:flex;align-items:flex-start;gap:12px;">
+                <div style="width:32px;height:32px;background:var(--md3-primary-container);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--md3-on-primary-container);font-weight:600;">1</div>
+                <div style="flex:1;">
+                  <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                    <input type="text" value="智能问答知识库管理" style="flex:1;font-size:14px;font-weight:600;border:none;outline:none;background:transparent;color:var(--md3-on-surface);"/>
+                    <span class="badge badge-p0">P0</span>
+                    <span style="font-size:11px;color:var(--md3-outline);">工期：5 天</span>
+                  </div>
+                  <div style="font-size:12px;color:var(--md3-on-surface-variant);margin-bottom:8px;">支持导入/编辑/管理知识库文章，支持富文本、图片、附件。</div>
+                  <div style="display:flex;gap:6px;">
+                    <button class="btn btn-sm btn-tonal">合并</button>
+                    <button class="btn btn-sm btn-tonal">拆分</button>
+                    <button class="btn btn-sm btn-tonal">删除</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 需求 2 -->
+            <div style="padding:16px;border-bottom:1px solid var(--md3-outline-variant);">
+              <div style="display:flex;align-items:flex-start;gap:12px;">
+                <div style="width:32px;height:32px;background:var(--md3-primary-container);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--md3-on-primary-container);font-weight:600;">2</div>
+                <div style="flex:1;">
+                  <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                    <input type="text" value="自动问答引擎" style="flex:1;font-size:14px;font-weight:600;border:none;outline:none;background:transparent;color:var(--md3-on-surface);"/>
+                    <span class="badge badge-p0">P0</span>
+                    <span style="font-size:11px;color:var(--md3-outline);">工期：10 天</span>
+                  </div>
+                  <div style="font-size:12px;color:var(--md3-on-surface-variant);margin-bottom:8px;">基于 NLP 的意图识别和答案匹配，支持多轮对话。</div>
+                  <div style="display:flex;gap:6px;">
+                    <button class="btn btn-sm btn-tonal">合并</button>
+                    <button class="btn btn-sm btn-tonal">拆分</button>
+                    <button class="btn btn-sm btn-tonal">删除</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 需求 3 -->
+            <div style="padding:16px;border-bottom:1px solid var(--md3-outline-variant);">
+              <div style="display:flex;align-items:flex-start;gap:12px;">
+                <div style="width:32px;height:32px;background:var(--md3-secondary-container);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--md3-on-secondary-container);font-weight:600;">3</div>
+                <div style="flex:1;">
+                  <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                    <input type="text" value="工单智能分类与路由" style="flex:1;font-size:14px;font-weight:600;border:none;outline:none;background:transparent;color:var(--md3-on-surface);"/>
+                    <span class="badge badge-p1">P1</span>
+                    <span style="font-size:11px;color:var(--md3-outline);">工期：7 天</span>
+                  </div>
+                  <div style="font-size:12px;color:var(--md3-on-surface-variant);margin-bottom:8px;">自动识别用户问题类型，智能分配给对应技能组。</div>
+                  <div style="display:flex;gap:6px;">
+                    <button class="btn btn-sm btn-tonal">合并</button>
+                    <button class="btn btn-sm btn-tonal">拆分</button>
+                    <button class="btn btn-sm btn-tonal">删除</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 需求 4 -->
+            <div style="padding:16px;border-bottom:1px solid var(--md3-outline-variant);">
+              <div style="display:flex;align-items:flex-start;gap:12px;">
+                <div style="width:32px;height:32px;background:var(--md3-secondary-container);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--md3-on-secondary-container);font-weight:600;">4</div>
+                <div style="flex:1;">
+                  <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                    <input type="text" value="多渠道接入" style="flex:1;font-size:14px;font-weight:600;border:none;outline:none;background:transparent;color:var(--md3-on-surface);"/>
+                    <span class="badge badge-p1">P1</span>
+                    <span style="font-size:11px;color:var(--md3-outline);">工期：8 天</span>
+                  </div>
+                  <div style="font-size:12px;color:var(--md3-on-surface-variant);margin-bottom:8px;">支持 Web、App、微信公众号接入，统一后台管理。</div>
+                  <div style="display:flex;gap:6px;">
+                    <button class="btn btn-sm btn-tonal">合并</button>
+                    <button class="btn btn-sm btn-tonal">拆分</button>
+                    <button class="btn btn-sm btn-tonal">删除</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 需求 5 -->
+            <div style="padding:16px;">
+              <div style="display:flex;align-items:flex-start;gap:12px;">
+                <div style="width:32px;height:32px;background:var(--md3-outline);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--md3-on-surface);font-weight:600;">5</div>
+                <div style="flex:1;">
+                  <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                    <input type="text" value="客服数据看板" style="flex:1;font-size:14px;font-weight:600;border:none;outline:none;background:transparent;color:var(--md3-on-surface);"/>
+                    <span class="badge badge-p2">P2</span>
+                    <span style="font-size:11px;color:var(--md3-outline);">工期：5 天</span>
+                  </div>
+                  <div style="font-size:12px;color:var(--md3-on-surface-variant);margin-bottom:8px;">统计问答量、解决率、用户满意度等指标。</div>
+                  <div style="display:flex;gap:6px;">
+                    <button class="btn btn-sm btn-tonal">合并</button>
+                    <button class="btn btn-sm btn-tonal">拆分</button>
+                    <button class="btn btn-sm btn-tonal">删除</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style="padding:16px;background:var(--md3-surface-container-low);">
+              <button class="btn btn-tonal" style="width:100%;"><i class="fa-solid fa-plus"></i> 添加新需求</button>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- PAGE: REQUIREMENTS -->
+    <div class="content page" id="page-requirements">
+      <div style="margin-bottom:20px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+          <div style="font-size:20px;font-weight:500;">REQ-005: AI智能排班系统</div>
+          <span class="badge badge-pending">需求分析中</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">基本信息</div>
+            </div>
+            <div class="card-body" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+              <div>
+                <div style="font-size:11px;color:var(--md3-on-surface-variant);margin-bottom:4px;">关联特性</div>
+                <div style="font-size:14px;font-weight:500;">FEAT-003</div>
+              </div>
+              <div>
+                <div style="font-size:11px;color:var(--md3-on-surface-variant);margin-bottom:4px;">优先级</div>
+                <span class="badge badge-p1">P1 中价值</span>
+              </div>
+              <div>
+                <div style="font-size:11px;color:var(--md3-on-surface-variant);margin-bottom:4px;">负责人</div>
+                <span class="agent-badge active" style="font-size:11px;"><span class="dot"></span>需求AI</span>
+              </div>
+              <div>
+                <div style="font-size:11px;color:var(--md3-on-surface-variant);margin-bottom:4px;">创建时间</div>
+                <div style="font-size:14px;">2026-03-28</div>
+              </div>
+              <div style="grid-column:1/-1;">
+                <div style="font-size:11px;color:var(--md3-on-surface-variant);margin-bottom:4px;">用户故事</div>
+                <div style="font-size:14px;padding:12px;background:var(--md3-surface-container-low);border-radius:var(--radius-sm);">作为排班管理员，我希望系统能根据员工技能、历史数据自动生成最优排班方案，以提高排班效率和员工满意度。</div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">验收标准（Eval）</div>
+            </div>
+            <div class="card-body">
+              <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--md3-outline-variant);">
+                <div style="width:20px;height:20px;border:2px solid var(--md3-primary);border-radius:4px;display:flex;align-items:center;justify-content:center;color:var(--md3-primary);font-size:10px;"><i class="fa-solid fa-check"></i></div>
+                <span style="flex:1;font-size:14px;">ES-001: 支持按技能标签自动匹配员工</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--md3-outline-variant);">
+                <div style="width:20px;height:20px;border:2px solid var(--md3-primary);border-radius:4px;display:flex;align-items:center;justify-content:center;color:var(--md3-primary);font-size:10px;"><i class="fa-solid fa-check"></i></div>
+                <span style="flex:1;font-size:14px;">ES-002: 支持手动调整排班并自动冲突检测</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--md3-outline-variant);">
+                <div style="width:20px;height:20px;border:2px solid var(--md3-outline);border-radius:4px;"></div>
+                <span style="flex:1;font-size:14px;">ES-003: 支持法定节假日自动排除</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;padding:10px 0;">
+                <div style="width:20px;height:20px;border:2px solid var(--md3-outline);border-radius:4px;"></div>
+                <span style="flex:1;font-size:14px;">ES-004: 支持排班结果导出Excel/PDF</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: SETTINGS -->
+    <div class="content page" id="page-settings">
+      <div style="margin-bottom:24px;">
+        <div style="font-size:20px;font-weight:500;margin-bottom:20px;">系统设置</div>
+        <div class="card animate-fade-in">
+          <div style="padding:20px;">
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+              <div style="padding:16px;background:var(--md3-surface-container-low);border-radius:var(--radius-md);border:1px solid var(--md3-outline-variant);cursor:pointer;transition:background 0.15s;" onclick="showToast('飞书集成配置')">
+                <div style="width:36px;height:36px;background:var(--md3-primary-container);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;color:var(--md3-on-primary-container);margin-bottom:12px;"><i class="fa-brands fa飞的"></i></div>
+                <div style="font-size:14px;font-weight:500;margin-bottom:4px;">飞书集成</div>
+                <div style="font-size:12px;color:var(--md3-on-surface-variant);">配置 AppID、AppSecret、多维表格</div>
+              </div>
+              <div style="padding:16px;background:var(--md3-surface-container-low);border-radius:var(--radius-md);border:1px solid var(--md3-outline-variant);cursor:pointer;transition:background 0.15s;" onclick="showToast('Git 集成配置')">
+                <div style="width:36px;height:36px;background:var(--md3-secondary-container);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;color:var(--md3-on-secondary-container);margin-bottom:12px;"><i class="fa-solid fa-code-branch"></i></div>
+                <div style="font-size:14px;font-weight:500;margin-bottom:4px;">Git 集成</div>
+                <div style="font-size:12px;color:var(--md3-on-surface-variant);">配置仓库 URL、Access Token</div>
+              </div>
+              <div style="padding:16px;background:var(--md3-surface-container-low);border-radius:var(--radius-md);border:1px solid var(--md3-outline-variant);cursor:pointer;transition:background 0.15s;" onclick="showToast('LLM 配置')">
+                <div style="width:36px;height:36px;background:var(--md3-tertiary-container);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;color:var(--md3-on-tertiary-container);margin-bottom:12px;"><i class="fa-solid fa-brain"></i></div>
+                <div style="font-size:14px;font-weight:500;margin-bottom:4px;">LLM 配置</div>
+                <div style="font-size:12px;color:var(--md3-on-surface-variant);">DashScope API Key、默认模型</div>
+              </div>
+              <div style="padding:16px;background:var(--md3-surface-container-low);border-radius:var(--radius-md);border:1px solid var(--md3-outline-variant);cursor:pointer;transition:background 0.15s;" onclick="showToast('邮件通知配置')">
+                <div style="width:36px;height:36px;background:var(--md3-success-container);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;color:var(--md3-success);margin-bottom:12px;"><i class="fa-solid fa-envelope"></i></div>
+                <div style="font-size:14px;font-weight:500;margin-bottom:4px;">邮件通知</div>
+                <div style="font-size:12px;color:var(--md3-on-surface-variant);">SMTP 配置、发件人、收件人列表</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: INTELLIGENCE (情报来源详情) -->
+    <div class="content page" id="page-intelligence">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+        <div>
+          <h2 style="font-size:20px;font-weight:600;margin-bottom:4px;">📡 情报来源详情</h2>
+          <div style="font-size:13px;color:var(--md3-on-surface-variant);">今日采集情报 <strong>1,293</strong> 条 · 已转意向 <strong>3</strong> 条 · 待处理 <strong>1,290</strong> 条</div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <select class="form-select" style="width:140px;">
+            <option value="">全部渠道</option>
+            <option value="social">社交媒体</option>
+            <option value="competitor">竞品动态</option>
+            <option value="media">行业舆情</option>
+            <option value="feishu">飞书表格</option>
+            <option value="manual">人工提交</option>
+          </select>
+          <select class="form-select" style="width:140px;">
+            <option value="">全部状态</option>
+            <option value="pending">待处理</option>
+            <option value="converted">已转意向</option>
+            <option value="discarded">已丢弃</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 渠道分组 -->
+      <div class="card animate-fade-in" style="margin-bottom:20px;">
+        <div class="card-header">
+          <i class="fa-solid fa-share-nodes" style="color:var(--md3-primary);"></i>
+          <div class="card-title">渠道分布</div>
+        </div>
+        <div class="card-body">
+          <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;">
+            <div style="padding:16px;background:var(--md3-primary-container);border-radius:var(--radius-md);cursor:pointer;" onclick="filterByChannel('social')">
+              <div style="font-size:11px;color:var(--md3-on-primary-container);margin-bottom:4px;">📊 社交媒体</div>
+              <div style="font-size:24px;font-weight:700;color:var(--md3-on-primary-container);">1,247</div>
+              <div style="font-size:10px;color:var(--md3-on-primary-container);opacity:0.8;">转意向：2</div>
+            </div>
+            <div style="padding:16px;background:var(--md3-secondary-container);border-radius:var(--radius-md);cursor:pointer;" onclick="filterByChannel('competitor')">
+              <div style="font-size:11px;color:var(--md3-on-secondary-container);margin-bottom:4px;">🏢 竞品动态</div>
+              <div style="font-size:24px;font-weight:700;color:var(--md3-on-secondary-container);">8</div>
+              <div style="font-size:10px;color:var(--md3-on-secondary-container);opacity:0.8;">转意向：1</div>
+            </div>
+            <div style="padding:16px;background:var(--md3-tertiary-container);border-radius:var(--radius-md);cursor:pointer;" onclick="filterByChannel('media')">
+              <div style="font-size:11px;color:var(--md3-on-tertiary-container);margin-bottom:4px;">📰 行业舆情</div>
+              <div style="font-size:24px;font-weight:700;color:var(--md3-on-tertiary-container);">15</div>
+              <div style="font-size:10px;color:var(--md3-on-tertiary-container);opacity:0.8;">转意向：0</div>
+            </div>
+            <div style="padding:16px;background:var(--md3-success-container);border-radius:var(--radius-md);cursor:pointer;" onclick="filterByChannel('feishu')">
+              <div style="font-size:11px;color:var(--md3-success);margin-bottom:4px;">📋 飞书表格</div>
+              <div style="font-size:24px;font-weight:700;color:var(--md3-success);">23</div>
+              <div style="font-size:10px;color:var(--md3-success);opacity:0.8;">转意向：0</div>
+            </div>
+            <div style="padding:16px;background:var(--md3-outline);border-radius:var(--radius-md);cursor:pointer;" onclick="filterByChannel('manual')">
+              <div style="font-size:11px;color:var(--md3-on-surface);margin-bottom:4px;">🎯 人工提交</div>
+              <div style="font-size:24px;font-weight:700;color:var(--md3-on-surface);">1</div>
+              <div style="font-size:10px;color:var(--md3-on-surface);opacity:0.8;">转意向：0</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 情报列表 -->
+      <div class="card animate-fade-in" style="animation-delay:0.1s;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>情报 ID</th>
+              <th>情报标题</th>
+              <th>来源渠道</th>
+              <th>重要性评分</th>
+              <th>状态</th>
+              <th>采集时间</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="font-size:12px;color:var(--md3-outline);">INT-20260330-001</td>
+              <td>
+                <div style="font-weight:500;">AI 智能客服功能上线，用户反馈响应速度慢</div>
+                <div style="font-size:12px;color:var(--md3-on-surface-variant);">竞品 X 于 3 月 25 日上线 AI 客服，但用户普遍吐槽响应延迟高</div>
+              </td>
+              <td>
+                <span style="font-size:12px;">📊 小红书 + 微博 + 科技媒体</span>
+                <div style="font-size:11px;color:var(--md3-outline);">多源交叉验证 (3 渠道)</div>
+              </td>
+              <td>
+                <div style="display:flex;align-items:center;gap:4px;">
+                  <div style="width:60px;height:6px;background:var(--md3-outline-variant);border-radius:3px;overflow:hidden;">
+                    <div style="width:78%;height:100%;background:var(--md3-primary);border-radius:3px;"></div>
+                  </div>
+                  <span style="font-size:12px;font-weight:600;">7.8</span>
+                </div>
+              </td>
+              <td><span class="badge badge-converted" style="background:var(--md3-success-container);color:var(--md3-success);">✅ 已转意向</span></td>
+              <td class="text-muted">2026-03-30 10:23</td>
+              <td>
+                <button class="btn btn-sm btn-text" onclick="showToast('查看情报详情')">👁 详情</button>
+                <button class="btn btn-sm btn-text" onclick="showToast('查看关联意向')">🔗 意向</button>
+              </td>
+            </tr>
+            <tr>
+              <td style="font-size:12px;color:var(--md3-outline);">INT-20260330-002</td>
+              <td>
+                <div style="font-weight:500;">全屋定制报价工具需求激增，用户抱怨现有工具难用</div>
+                <div style="font-size:12px;color:var(--md3-on-surface-variant);">小红书用户集中吐槽现有报价工具功能单一、计算不准确</div>
+              </td>
+              <td>
+                <span style="font-size:12px;">📊 小红书 - 用户评论</span>
+                <div style="font-size:11px;color:var(--md3-outline);">采集 623 条</div>
+              </td>
+              <td>
+                <div style="display:flex;align-items:center;gap:4px;">
+                  <div style="width:60px;height:6px;background:var(--md3-outline-variant);border-radius:3px;overflow:hidden;">
+                    <div style="width:85%;height:100%;background:var(--md3-primary);border-radius:3px;"></div>
+                  </div>
+                  <span style="font-size:12px;font-weight:600;">8.5</span>
+                </div>
+              </td>
+              <td><span class="badge badge-converted" style="background:var(--md3-success-container);color:var(--md3-success);">✅ 已转意向</span></td>
+              <td class="text-muted">2026-03-30 11:45</td>
+              <td>
+                <button class="btn btn-sm btn-text" onclick="showToast('查看情报详情')">👁 详情</button>
+                <button class="btn btn-sm btn-text" onclick="showToast('查看关联意向')">🔗 意向</button>
+              </td>
+            </tr>
+            <tr>
+              <td style="font-size:12px;color:var(--md3-outline);">INT-20260330-003</td>
+              <td>
+                <div style="font-weight:500;">装备制造业数字化转型报告发布</div>
+                <div style="font-size:12px;color:var(--md3-on-surface-variant);">工信部发布 2026 装备制造业数字化转型白皮书，强调智能化报价系统重要性</div>
+              </td>
+              <td>
+                <span style="font-size:12px;">📰 36 氪 - 行业报告</span>
+                <div style="font-size:11px;color:var(--md3-outline);">政策文件</div>
+              </td>
+              <td>
+                <div style="display:flex;align-items:center;gap:4px;">
+                  <div style="width:60px;height:6px;background:var(--md3-outline-variant);border-radius:3px;overflow:hidden;">
+                    <div style="width:72%;height:100%;background:var(--md3-secondary);border-radius:3px;"></div>
+                  </div>
+                  <span style="font-size:12px;font-weight:600;">7.2</span>
+                </div>
+              </td>
+              <td><span class="badge badge-pending" style="background:var(--md3-secondary-container);color:var(--md3-on-secondary);">⏳ 待处理</span></td>
+              <td class="text-muted">2026-03-30 14:20</td>
+              <td>
+                <button class="btn btn-sm btn-filled" onclick="showToast('已转为意向')">🔄 转意向</button>
+                <button class="btn btn-sm btn-text" onclick="showToast('查看情报详情')">👁 详情</button>
+              </td>
+            </tr>
+            <tr>
+              <td style="font-size:12px;color:var(--md3-outline);">INT-20260330-004</td>
+              <td>
+                <div style="font-weight:500;">竞品 Y 发布 SaaS 版报价系统，支持 API 集成</div>
+                <div style="font-size:12px;color:var(--md3-on-surface-variant);">竞品 Y 于 3 月 28 日发布新产品，支持 RESTful API 和 Webhook</div>
+              </td>
+              <td>
+                <span style="font-size:12px;">🏢 竞品官网 - 产品更新</span>
+                <div style="font-size:11px;color:var(--md3-outline);">官方公告</div>
+              </td>
+              <td>
+                <div style="display:flex;align-items:center;gap:4px;">
+                  <div style="width:60px;height:6px;background:var(--md3-outline-variant);border-radius:3px;overflow:hidden;">
+                    <div style="width:90%;height:100%;background:var(--md3-primary);border-radius:3px;"></div>
+                  </div>
+                  <span style="font-size:12px;font-weight:600;">9.0</span>
+                </div>
+              </td>
+              <td><span class="badge badge-pending" style="background:var(--md3-secondary-container);color:var(--md3-on-secondary);">⏳ 待处理</span></td>
+              <td class="text-muted">2026-03-30 15:10</td>
+              <td>
+                <button class="btn btn-sm btn-filled" onclick="showToast('已转为意向')">🔄 转意向</button>
+                <button class="btn btn-sm btn-text" onclick="showToast('查看情报详情')">👁 详情</button>
+              </td>
+            </tr>
+            <tr>
+              <td style="font-size:12px;color:var(--md3-outline);">INT-20260330-005</td>
+              <td>
+                <div style="font-weight:500;">用户寻找支持批量导入 Excel 的报价工具</div>
+                <div style="font-size:12px;color:var(--md3-on-surface-variant);">抖音用户提问：有没有能批量导入 Excel 自动计算报价的工具？</div>
+              </td>
+              <td>
+                <span style="font-size:12px;">📊 抖音 - 用户提问</span>
+                <div style="font-size:11px;color:var(--md3-outline);">单条反馈</div>
+              </td>
+              <td>
+                <div style="display:flex;align-items:center;gap:4px;">
+                  <div style="width:60px;height:6px;background:var(--md3-outline-variant);border-radius:3px;overflow:hidden;">
+                    <div style="width:45%;height:100%;background:var(--md3-outline);border-radius:3px;"></div>
+                  </div>
+                  <span style="font-size:12px;font-weight:600;">4.5</span>
+                </div>
+              </td>
+              <td><span class="badge badge-discarded" style="background:var(--md3-outline);color:var(--md3-on-surface);">❌ 已丢弃</span></td>
+              <td class="text-muted">2026-03-30 16:30</td>
+              <td>
+                <button class="btn btn-sm btn-text" onclick="showToast('查看情报详情')">👁 详情</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <i class="fa-solid fa-circle-check"></i>
+  <span id="toast-message">操作成功</span>
+</div>
+
+<script>
+// Page Navigation
+const pageNames = {
+  dashboard: '控制台',
+  intelligence: '情报来源',
+  opportunities: '意向池',
+  kanban: '看板',
+  'requirement-split': '需求拆分',
+  requirements: '需求详情',
+  agents: 'Agent 团队配置',
+  specs: '阶段规范配置',
+  settings: '系统设置'
+};
+
+function navigateTo(page) {
+  // Hide all pages
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  // Show target page
+  const target = document.getElementById('page-' + page);
+  if (target) {
+    target.classList.add('active');
+    target.classList.add('animate-fade-in');
+  }
+  // Update nav rail
+  document.querySelectorAll('.nav-rail-item').forEach(item => item.classList.remove('active'));
+  const navItem = document.querySelector(`.nav-rail-item[data-page="${page}"]`);
+  if (navItem) navItem.classList.add('active');
+  // Update topbar
+  document.getElementById('topbar-page-name').textContent = pageNames[page] || page;
+  // Reset animation
+  setTimeout(() => {
+    if (target) target.style.animation = 'none';
+  }, 10);
+}
+
+// Nav rail click
+document.querySelectorAll('.nav-rail-item').forEach(item => {
+  item.addEventListener('click', () => {
+    const page = item.dataset.page;
+    if (page) navigateTo(page);
+  });
+});
+
+// Tab click (agents page)
+document.querySelectorAll('#page-agents .tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('#page-agents .tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const tabName = tab.dataset.tab;
+    document.querySelectorAll('#page-agents .tab-content').forEach(c => c.style.display = 'none');
+    document.getElementById('tab-' + tabName).style.display = 'block';
+  });
+});
+
+// Toast
+function showToast(message) {
+  const toast = document.getElementById('toast');
+  document.getElementById('toast-message').textContent = message;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+// Init
+document.addEventListener('DOMContentLoaded', () => {
+  navigateTo('dashboard');
+});
+
+// Filter intelligence by channel
+function filterByChannel(channel) {
+  showToast('筛选渠道：' + channel);
+  // 实际实现会调用后端 API 筛选
+}
+
+</script>
+</body>
+</html>
