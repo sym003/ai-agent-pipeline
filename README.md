@@ -62,37 +62,40 @@ AI Agent Pipeline is an enterprise-grade AI Agent collaboration platform that au
 ai-agent-pipeline/
 ├── README.md
 ├── LICENSE
+├── .gitignore
 ├── requirements.txt
 ├── docs/
-│   ├── requirements.md          # 原始需求 / Original Requirements
-│   ├── state_machine_design.md  # 状态机设计 / State Machine Design
-│   ├── technical_architecture.md # 技术架构 / Technical Architecture
-│   ├── product_design.md        # 产品设计 / Product Design
-│   └── prototypes/              # 交互原型 / Interactive Prototypes
-├── src/
-│   ├── core/                    # 核心引擎 / Core Engine
+│   ├── requirements.md              # 原始需求 / Original Requirements
+│   ├── 状态机设计.md                 # 状态机设计 / State Machine Design
+│   ├── 技术架构设计.md              # 技术架构 / Technical Architecture
+│   ├── 产品设计文档.md              # 产品设计 / Product Design
+│   └── prototypes/                 # 交互原型 / Interactive Prototypes
+│       └── prototype.html          # 高保真HTML原型
+├── src/                            # 源代码 / Source Code
+│   ├── core/                       # 核心引擎 [规划中] / Core Engine
 │   │   ├── state_machine.py
 │   │   └── orchestrator.py
-│   ├── teams/                   # AI团队 / AI Teams
-│   │   ├── intelligence_team.py
-│   │   ├── pre_sales_team.py
-│   │   ├── product_owner_team.py
-│   │   ├── requirement_team.py
-│   │   ├── architecture_team.py
-│   │   ├── coding_team.py
-│   │   ├── testing_team.py
-│   │   └── fallback_agent.py
-│   ├── crayfish_racing/         # 🦐 小龙虾养殖赛马 / Crayfish Racing Module
-│   └── infrastructure/         # 基础设施 / Infrastructure
-│       ├── feishu/
-│       ├── git/
-│       ├── email/
-│       ├── llm/
-│       ├── security/
-│       └── logging/
-├── configs/                     # 配置文件 / Configuration
-├── tests/                      # 测试用例 / Tests
-└── examples/                   # 示例代码 / Examples
+│   ├── teams/                      # AI团队 [规划中] / AI Teams
+│   │   ├── intelligence_team.py   # 情报团队
+│   │   ├── pre_sales_team.py      # 售前团队
+│   │   ├── product_owner_team.py  # 产品负责人团队
+│   │   ├── requirement_team.py    # 需求团队
+│   │   ├── architecture_team.py   # 架构团队
+│   │   ├── coding_team.py         # 编码团队
+│   │   ├── testing_team.py        # 测试团队
+│   │   ├── acceptance_team.py     # 验收团队
+│   │   ├── quality_team.py        # 质量团队
+│   │   └── fallback_agent.py      # 兜底Agent
+│   └── infrastructure/             # 基础设施 [规划中] / Infrastructure
+│       ├── feishu/                 # 飞书集成
+│       ├── git/                    # Git自动化
+│       ├── email/                  # 邮件通知
+│       ├── llm/                    # LLM调用
+│       ├── security/               # 安全模块
+│       └── logging/                # 日志模块
+├── configs/                       # 配置文件 / Configuration
+├── tests/                         # 测试用例 / Tests
+└── output/                        # 输出文件 / Output Files
 ```
 
 ---
@@ -123,11 +126,14 @@ python -m src.main
 - [x] 状态机设计 / State Machine Design
 - [x] 技术架构设计 / Technical Architecture
 - [x] 产品设计文档 / Product Design Document
+- [x] 高保真HTML原型 / High-fidelity HTML Prototype
+- [x] 项目骨架搭建 / Project Skeleton Setup
 
 ### Phase 2: Core Engine 🚧
 - [ ] 状态机引擎实现 / State Machine Engine
 - [ ] Agent编排器 / Agent Orchestrator
 - [ ] 飞书Webhook接入 / Feishu Webhook Integration
+- [ ] 飞书API连通性验证 / Feishu API Connectivity
 
 ### Phase 3: AI Teams 📋
 - [ ] 7个AI团队实现 / 7 AI Teams Implementation
