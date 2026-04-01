@@ -4,15 +4,18 @@
 [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109+--green.svg)](https://fastapi.tiangolo.com/)
 
-> An enterprise-grade AI-powered R&D pipeline platform that automates the entire journey from creative idea to product delivery.
+> An enterprise-grade AI-powered pipeline factory that automates the entire journey from creative idea to product delivery through configurable multi-agent collaboration.
 
 ---
 
 ## 项目简介 / Overview
 
-AI Agent Pipeline 是一个企业级 AI Agent 协作流水线平台，通过多个专业 AI Agent 团队实现从商机捕获到产品上线的完整研发流程自动化，与飞书（Lark）多维表格深度集成，实现研发流程的智能化升级。
+AI Agent Pipeline 是一个**可配置的 AI 流水线工厂**，通过模块化的 Stage 和 Handler 实现从创意到交付的完整流程自动化。
 
-AI Agent Pipeline is an enterprise-grade AI Agent collaboration platform that automates the entire R&D workflow from opportunity capture to product launch. It features deep integration with Feishu (Lark) Bitable for intelligent R&D process management.
+- **旧定位**：AI 研发助手（固定 7 个 Agent 流水线）
+- **新定位**：AI 流水线工厂（可配置 Stage，像搭乐高一样灵活）
+
+AI Agent Pipeline is a **configurable AI pipeline factory** that automates the entire R&D workflow through modular Stages and Handlers.
 
 **核心理念 / Core Philosophy**: 团队转型而非个人武装——让多个专业 Agent 各司其职、协同产出。
 
@@ -20,32 +23,52 @@ AI Agent Pipeline is an enterprise-grade AI Agent collaboration platform that au
 
 ---
 
+## 核心概念 / Core Concepts
+
+| 概念 | 说明 |
+|------|------|
+| **Pipeline** | 可配置的流水线，由一串 Stage 组成 |
+| **Stage** | 装配工位，定义输入 → 处理 → 输出 |
+| **Artifact** | 流水线中传递的产出物 |
+| **Handler** | Stage 的执行逻辑（AI自动 / 人工 / AI+人工协作）|
+
+### Handler 类型
+
+| 类型 | 说明 | 适用场景 |
+|------|------|----------|
+| **AI_AUTO** | AI 自动处理，无需人工介入 | 情报提取、格式转换、数据清洗 |
+| **HUMAN_ONLY** | 纯人工处理，AI 仅做辅助 | 需求评审、架构审批、UAT 验收 |
+| **AI_DRAFT_HUMAN_APPROVE** | AI 出草稿，人工确认/修改 | 意向分析、特性评审、方案选择 |
+
+---
+
 ## 核心流程 / Core Pipeline
 
 ```
-📡 Intelligence → 📊 Pre-Sales → 🎯 AI Product Owner → 📝 Requirements → 🏗️ Architecture → 💻 Coding → 🧪 Testing
+📡 情报收集(AI) → 📊 情报分析(AI) → 🎯 意向分析(AI+人工) → ✅ 意向确认(人工)
 ```
 
-情报收集 → 售前分析 → AI产品负责人 → 需求分析 → 架构设计 → 编码 → 测试
+情报收集 → 情报分析 → 意向分析 → 意向确认
 
 ---
 
 ## 核心特性 / Key Features
 
-- 🤖 **Multi-Agent Collaboration / 多Agent协作** — 7个专业化AI团队各司其职
-- 🔄 **State Machine Engine / 状态机引擎** — 完整的实体生命周期管理
+- 🔧 **Configurable Pipeline / 可配置流水线** — JSON Schema 定义，可视化编辑
+- 🤖 **Multi-Agent Collaboration / 多Agent协作** — 专业化 Agent 团队各司其职
+- 📦 **Artifact-Driven / 产出物驱动** — 流水线中传递的是产出物而非对话消息
+- 🔄 **Flexible Handlers / 灵活处理器** — AI / Human / Hybrid 三种模式
+- 🛠️ **Tool Registry / 工具注册中心** — 支持内置工具和 MCP 扩展
 - 📊 **Feishu Integration / 飞书集成** — 与飞书多维表格深度联动
-- 📧 **Smart Notifications / 智能通知** — 邮件+飞书消息实时同步
-- 🔀 **Git Automation / Git自动化** — 自动分支、PR、代码审查
-- 🛡️ **Fallback Mechanism / 兜底机制** — 无专项Agent时的通用保障
 
 ---
 
 ## 技术栈 / Tech Stack
 
 | 组件 Component | 技术 Technology |
-|----------------|-----------------|
+:|----------------|-----------------|
 | Web框架 Web Framework | FastAPI |
+| 数据验证 Data Validation | Pydantic |
 | Agent编排 Agent Orchestration | CrewAI + LangGraph |
 | 事件总线 Event Bus | Redis Stream |
 | 任务队列 Task Queue | Celery + Redis |
@@ -65,37 +88,29 @@ ai-agent-pipeline/
 ├── .gitignore
 ├── requirements.txt
 ├── docs/
-│   ├── requirements.md              # 原始需求 / Original Requirements
-│   ├── 状态机设计.md                 # 状态机设计 / State Machine Design
-│   ├── 技术架构设计.md              # 技术架构 / Technical Architecture
-│   ├── 产品设计文档.md              # 产品设计 / Product Design
-│   └── prototypes/                 # 交互原型 / Interactive Prototypes
-│       └── prototype.html          # 高保真HTML原型
-├── src/                            # 源代码 / Source Code
-│   ├── core/                       # 核心引擎 [规划中] / Core Engine
-│   │   ├── state_machine.py
-│   │   └── orchestrator.py
-│   ├── teams/                      # AI团队 [规划中] / AI Teams
-│   │   ├── intelligence_team.py   # 情报团队
-│   │   ├── pre_sales_team.py      # 售前团队
-│   │   ├── product_owner_team.py  # 产品负责人团队
-│   │   ├── requirement_team.py    # 需求团队
-│   │   ├── architecture_team.py   # 架构团队
-│   │   ├── coding_team.py         # 编码团队
-│   │   ├── testing_team.py        # 测试团队
-│   │   ├── acceptance_team.py     # 验收团队
-│   │   ├── quality_team.py        # 质量团队
-│   │   └── fallback_agent.py      # 兜底Agent
-│   └── infrastructure/             # 基础设施 [规划中] / Infrastructure
-│       ├── feishu/                 # 飞书集成
-│       ├── git/                    # Git自动化
-│       ├── email/                  # 邮件通知
-│       ├── llm/                    # LLM调用
-│       ├── security/               # 安全模块
-│       └── logging/                # 日志模块
-├── configs/                       # 配置文件 / Configuration
-├── tests/                         # 测试用例 / Tests
-└── output/                        # 输出文件 / Output Files
+│   ├── requirements.md              # 原始需求
+│   ├── 状态机设计.md                 # 状态机设计
+│   ├── 技术架构设计.md              # 技术架构
+│   ├── 架构升级设计.md              # v2.0 架构升级设计
+│   ├── 产品设计文档.md              # 产品设计
+│   └── prototypes/                 # 交互原型
+│       └── prototype.html
+├── src/                            # 源代码
+│   └── core/                       # 核心引擎 ✅ Phase 1
+│       ├── models/                 # 数据模型
+│       │   ├── artifact.py         # Artifact & ArtifactType
+│       │   ├── pipeline.py         # Pipeline & PipelineMeta
+│       │   ├── stage.py            # Stage & RetryConfig
+│       │   └── handlers.py         # Handler types
+│       └── schema/                 # Schema 定义
+│           ├── pipeline_schema.json # JSON Schema
+│           ├── loader.py            # 配置加载器
+│           └── validator.py        # 配置验证器
+├── configs/
+│   └── pipelines/                  # Pipeline 配置示例
+│       └── rd-pipeline-v1.json     # 研发流水线配置
+└── tests/                         # 测试用例
+    └── test_pipeline_loading.py    # Pipeline 加载测试
 ```
 
 ---
@@ -103,19 +118,24 @@ ai-agent-pipeline/
 ## 快速开始 / Quick Start
 
 ```bash
-# 克隆仓库 / Clone the repository
+# 克隆仓库
 git clone https://github.com/sym003/ai-agent-pipeline.git
 cd ai-agent-pipeline
 
-# 安装依赖 / Install dependencies
-pip install -r requirements.txt
+# 安装依赖
+pip install pydantic
 
-# 配置环境变量 / Configure environment variables
-cp configs/env.example .env
-# Edit .env with your API keys
+# 运行测试
+python tests/test_pipeline_loading.py
 
-# 运行应用 / Run the application
-python -m src.main
+# 加载 Pipeline 配置
+python -c "
+from src.core import load_pipeline_from_file
+pipeline = load_pipeline_from_file('configs/pipelines/rd-pipeline-v1.json')
+print(f'Pipeline: {pipeline.meta.name}')
+for stage in pipeline.stages:
+    print(f'  - {stage.name} ({stage.handler.type})')
+"
 ```
 
 ---
@@ -123,23 +143,26 @@ python -m src.main
 ## 路线图 / Roadmap
 
 ### Phase 1: Foundation ✅
-- [x] 状态机设计 / State Machine Design
-- [x] 技术架构设计 / Technical Architecture
-- [x] 产品设计文档 / Product Design Document
-- [x] 高保真HTML原型 / High-fidelity HTML Prototype
-- [x] 项目骨架搭建 / Project Skeleton Setup
+- [x] 架构升级设计（v2.0） / Architecture Upgrade Design
+- [x] Pipeline Schema JSON Schema 定义 / Pipeline Schema Definition
+- [x] 核心数据模型实现 / Core Data Models
+- [x] Pipeline 配置加载器 / Pipeline Config Loader
+- [x] Pipeline 配置验证器 / Pipeline Config Validator
+- [x] 测试用例 / Tests
 
-### Phase 2: Core Engine 🚧
-- [ ] 状态机引擎实现 / State Machine Engine
-- [ ] Agent编排器 / Agent Orchestrator
-- [ ] 飞书Webhook接入 / Feishu Webhook Integration
-- [ ] 飞书API连通性验证 / Feishu API Connectivity
+### Phase 2: Pipeline Executor 🚧
+- [ ] PipelineExecutor 实现 / PipelineExecutor Implementation
+- [ ] Stage Handler 接口实现 / Stage Handler Implementation
+- [ ] ArtifactStore 持久化 / Artifact Store
+- [ ] ToolRegistry 工具注册 / Tool Registry
 
 ### Phase 3: AI Teams 📋
-- [ ] 7个AI团队实现 / 7 AI Teams Implementation
-- [ ] 兜底机制 / Fallback Mechanism
+- [ ] 情报收集 Stage 实现 / Intelligence Stage
+- [ ] 意向分析 Stage 实现 / Prospect Analysis Stage
+- [ ] 人工审批 Handler / Human Approval Handler
 
 ### Phase 4: Integration 🚀
+- [ ] 飞书 Webhook 接入 / Feishu Webhook Integration
 - [ ] 端到端测试 / End-to-End Testing
 - [ ] 云端部署 / Cloud Deployment
 

@@ -1,0 +1,333 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-teams-harness.example.com/pipeline/v1/schema.json",
+  "title": "Pipeline Configuration Schema",
+  "description": "AI Pipeline Factory Configuration Schema - 定义流水线、阶段、处理器和产出物",
+  "version": "1.0.0",
+  "type": "object",
+  "required": ["pipeline", "stages"],
+  "properties": {
+    "pipeline": {
+      "$ref": "#/$defs/PipelineMeta"
+    },
+    "stages": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Stage"
+      },
+      "minItems": 1
+    },
+    "artifact_types": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ArtifactType"
+      }
+    },
+    "tools": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ToolDefinition"
+      }
+    }
+  },
+  "$defs": {
+    "PipelineMeta": {
+      "type": "object",
+      "required": ["id", "name", "version"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "examples": ["rd-pipeline", "marketing-pipeline"],
+          "description": "流水线唯一标识符"
+        },
+        "name": {
+          "type": "string",
+          "examples": ["研发流水线", "营销流水线"],
+          "description": "流水线显示名称"
+        },
+        "description": {
+          "type": "string",
+          "description": "流水线描述"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$",
+          "examples": ["1.0.0"],
+          "description": "语义化版本号"
+        },
+        "enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "是否启用"
+        }
+      }
+    },
+
+    "Stage": {
+      "type": "object",
+      "required": ["id", "name", "order", "input", "output", "handler"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^stage-[a-z][a-z0-9-]*$",
+          "examples": ["stage-intel-collection", "stage-intel-analysis"],
+          "description": "阶段唯一标识符"
+        },
+        "name": {
+          "type": "string",
+          "examples": ["情报收集", "情报分析"],
+          "description": "阶段显示名称"
+        },
+        "description": {
+          "type": "string",
+          "description": "阶段详细描述"
+        },
+        "order": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "执行顺序"
+        },
+        "input": {
+          "$ref": "#/$defs/ArtifactRef",
+          "description": "输入产出物类型"
+        },
+        "output": {
+          "$ref": "#/$defs/ArtifactRef",
+          "description": "输出产出物类型"
+        },
+        "handler": {
+          "$ref": "#/$defs/Handler",
+          "description": "处理器配置"
+        },
+        "retry": {
+          "$ref": "#/$defs/RetryConfig",
+          "description": "重试配置"
+        },
+        "timeout": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 3600,
+          "description": "超时时间（秒）"
+        },
+        "on_error": {
+          "type": "string",
+          "enum": ["fail", "skip", "fallback"],
+          "default": "fail",
+          "description": "出错时的行为"
+        }
+      }
+    },
+
+    "Handler": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["AI_AUTO", "HUMAN_ONLY", "AI_DRAFT_HUMAN_APPROVE"],
+          "description": "处理器类型"
+        },
+        "agent": {
+          "type": "string",
+          "description": "Agent ID（用于 AI_AUTO 和 AI_DRAFT_HUMAN_APPROVE）"
+        },
+        "approver": {
+          "type": "string",
+          "description": "审批人 ID（用于 HUMAN_ONLY 和 AI_DRAFT_HUMAN_APPROVE）"
+        },
+        "tools": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "使用的工具列表"
+        },
+        "prompt_template": {
+          "type": "string",
+          "description": "LLM Prompt 模板"
+        },
+        "llm_config": {
+          "$ref": "#/$defs/LLMConfig",
+          "description": "LLM 配置"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "AI_AUTO"
+              }
+            },
+            "required": ["type"]
+          },
+          "then": {
+            "required": ["agent", "tools"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "AI_DRAFT_HUMAN_APPROVE"
+              }
+            },
+            "required": ["type"]
+          },
+          "then": {
+            "required": ["agent", "approver"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "HUMAN_ONLY"
+              }
+            },
+            "required": ["type"]
+          },
+          "then": {
+            "required": ["approver"]
+          }
+        }
+      ]
+    },
+
+    "RetryConfig": {
+      "type": "object",
+      "properties": {
+        "max_attempts": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 3
+        },
+        "backoff_multiplier": {
+          "type": "number",
+          "minimum": 1,
+          "default": 2
+        },
+        "initial_delay": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 1,
+          "description": "初始延迟（秒）"
+        }
+      }
+    },
+
+    "LLMConfig": {
+      "type": "object",
+      "properties": {
+        "provider": {
+          "type": "string",
+          "enum": ["dashscope", "openai", "anthropic"],
+          "default": "dashscope"
+        },
+        "model": {
+          "type": "string",
+          "examples": ["qwen-turbo", "qwen-plus", "gpt-4", "claude-3-opus"]
+        },
+        "temperature": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 2,
+          "default": 0.7
+        },
+        "max_tokens": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 2000
+        }
+      }
+    },
+
+    "ArtifactRef": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "产出物类型 ID"
+        },
+        "required": {
+          "type": "boolean",
+          "default": true,
+          "description": "是否必需"
+        }
+      }
+    },
+
+    "ArtifactType": {
+      "type": "object",
+      "required": ["id", "name", "schema"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "examples": ["raw_intel", "intel_item", "prospect", "feature"],
+          "description": "产出物类型唯一标识"
+        },
+        "name": {
+          "type": "string",
+          "examples": ["原始情报", "情报条目", "意向", "特性"],
+          "description": "产出物类型显示名称"
+        },
+        "description": {
+          "type": "string",
+          "description": "产出物类型描述"
+        },
+        "schema": {
+          "$ref": "https://json-schema.org/draft/2020-12/schema",
+          "description": "JSON Schema 定义该产出物的结构"
+        },
+        "stages": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "可产出该类型的所有阶段"
+        }
+      }
+    },
+
+    "ToolDefinition": {
+      "type": "object",
+      "required": ["id", "name", "type"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "examples": ["web-fetch", "doc-parse", "china-demand-mining"],
+          "description": "工具唯一标识符"
+        },
+        "name": {
+          "type": "string",
+          "description": "工具显示名称"
+        },
+        "description": {
+          "type": "string",
+          "description": "工具功能描述"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["builtin", "mcp", "custom"],
+          "description": "工具类型"
+        },
+        "config": {
+          "type": "object",
+          "description": "工具配置参数"
+        },
+        "input_schema": {
+          "$ref": "https://json-schema.org/draft/2020-12/schema",
+          "description": "工具输入参数 Schema"
+        },
+        "output_schema": {
+          "$ref": "https://json-schema.org/draft/2020-12/schema",
+          "description": "工具输出结果 Schema"
+        }
+      }
+    }
+  }
+}

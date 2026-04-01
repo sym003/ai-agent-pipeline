@@ -1,0 +1,331 @@
+{
+  "$schema": "https://agent-teams-harness.example.com/pipeline/v1/schema.json",
+  "pipeline": {
+    "id": "rd-pipeline",
+    "name": "研发流水线",
+    "description": "从情报到上线的完整研发流程 - Phase 1 验证版本",
+    "version": "1.0.0-alpha.1",
+    "enabled": true
+  },
+  "artifact_types": [
+    {
+      "id": "raw_intel",
+      "name": "原始情报",
+      "description": "从各种渠道采集的原始情报数据",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string",
+            "description": "情报来源"
+          },
+          "raw_content": {
+            "type": "string",
+            "description": "原始内容"
+          },
+          "collected_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "stages": ["stage-intel-collection"]
+    },
+    {
+      "id": "intel_item",
+      "name": "情报条目",
+      "description": "经过清洗和结构化的情报条目",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "collected_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": ["title", "summary"]
+      },
+      "stages": ["stage-intel-analysis"]
+    },
+    {
+      "id": "prospect",
+      "name": "意向",
+      "description": "评估后的商业意向",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "customer": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "string",
+            "enum": ["P0", "P1", "P2"]
+          },
+          "roi_score": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "technical_feasibility": {
+            "type": "string",
+            "enum": ["high", "medium", "low"]
+          },
+          "status": {
+            "type": "string",
+            "enum": ["draft", "pending_approval", "approved", "rejected"]
+          },
+          "approved_by": {
+            "type": "string"
+          },
+          "approved_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": ["title", "priority", "status"]
+      },
+      "stages": ["stage-prospect-analysis", "stage-prospect-approval"]
+    }
+  ],
+  "stages": [
+    {
+      "id": "stage-intel-collection",
+      "name": "情报收集",
+      "description": "从多渠道自动采集原始情报",
+      "order": 1,
+      "input": {
+        "type": "raw_intel",
+        "required": false
+      },
+      "output": {
+        "type": "intel_item",
+        "required": true
+      },
+      "handler": {
+        "type": "AI_AUTO",
+        "agent": "inteligence-agent",
+        "tools": ["china-demand-mining", "web-fetch"],
+        "llm_config": {
+          "provider": "dashscope",
+          "model": "qwen-turbo",
+          "temperature": 0.7,
+          "max_tokens": 2000
+        }
+      },
+      "retry": {
+        "max_attempts": 3,
+        "backoff_multiplier": 2,
+        "initial_delay": 1
+      },
+      "timeout": 300,
+      "on_error": "fail"
+    },
+    {
+      "id": "stage-intel-analysis",
+      "name": "情报分析",
+      "description": "AI 分析情报并提取结构化信息",
+      "order": 2,
+      "input": {
+        "type": "intel_item",
+        "required": true
+      },
+      "output": {
+        "type": "intel_item",
+        "required": true
+      },
+      "handler": {
+        "type": "AI_AUTO",
+        "agent": "inteligence-agent",
+        "tools": ["llm-analyze", "scoring"],
+        "llm_config": {
+          "provider": "dashscope",
+          "model": "qwen-plus",
+          "temperature": 0.5,
+          "max_tokens": 3000
+        }
+      },
+      "timeout": 600,
+      "on_error": "fail"
+    },
+    {
+      "id": "stage-prospect-analysis",
+      "name": "意向分析",
+      "description": "AI 评估情报并生成意向草稿",
+      "order": 3,
+      "input": {
+        "type": "intel_item",
+        "required": true
+      },
+      "output": {
+        "type": "prospect",
+        "required": true
+      },
+      "handler": {
+        "type": "AI_DRAFT_HUMAN_APPROVE",
+        "agent": "presales-agent",
+        "approver": "product-owner",
+        "tools": ["llm-analyze", "scoring", "roi-calculation"],
+        "llm_config": {
+          "provider": "dashscope",
+          "model": "qwen-plus",
+          "temperature": 0.6,
+          "max_tokens": 3000
+        }
+      },
+      "timeout": 900,
+      "on_error": "fail"
+    },
+    {
+      "id": "stage-prospect-approval",
+      "name": "意向确认",
+      "description": "人工审批意向",
+      "order": 4,
+      "input": {
+        "type": "prospect",
+        "required": true
+      },
+      "output": {
+        "type": "prospect",
+        "required": true
+      },
+      "handler": {
+        "type": "HUMAN_ONLY",
+        "approver": "product-owner"
+      },
+      "timeout": 86400,
+      "on_error": "fail"
+    }
+  ],
+  "tools": [
+    {
+      "id": "china-demand-mining",
+      "name": "中国需求挖掘",
+      "description": "从中国科技媒体、社交平台挖掘需求情报",
+      "type": "builtin",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "keywords": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["wechat", "weibo", "zhihu", "twitter", "github"]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "web-fetch",
+      "name": "网页抓取",
+      "description": "抓取网页内容并提取关键信息",
+      "type": "builtin",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "selector": {
+            "type": "string"
+          }
+        },
+        "required": ["url"]
+      }
+    },
+    {
+      "id": "llm-analyze",
+      "name": "LLM 分析",
+      "description": "使用 LLM 对输入内容进行分析和提取",
+      "type": "builtin",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "prompt": {
+            "type": "string"
+          },
+          "input_content": {
+            "type": "string"
+          }
+        },
+        "required": ["prompt", "input_content"]
+      }
+    },
+    {
+      "id": "scoring",
+      "name": "评分工具",
+      "description": "根据预定义规则对内容进行评分",
+      "type": "builtin",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "criteria": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "weight": {
+                  "type": "number"
+                }
+              }
+            }
+          },
+          "input": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    {
+      "id": "roi-calculation",
+      "name": "ROI 计算",
+      "description": "计算商业价值和投资回报率",
+      "type": "builtin",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "revenue_potential": {
+            "type": "number"
+          },
+          "development_cost": {
+            "type": "number"
+          },
+          "time_to_market": {
+            "type": "number"
+          }
+        }
+      }
+    }
+  ]
+}
